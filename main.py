@@ -10,6 +10,7 @@ def main():
     """
 
     lexer = Lexer()
+    lexer.reserved += lexer.list(reserved.values())
     tokens = lexer.tokenize(entrada)
 
     print("=== Tokens Reconhecidos ===")
