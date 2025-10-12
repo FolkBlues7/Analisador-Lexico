@@ -125,8 +125,6 @@ def find_column(input, token):
     line_start = input.rfind('\n', 0, token.lexpos) + 1
     return (token.lexpos - line_start) + 1
 
-# ... (resto das suas funções de token) ...
-
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
