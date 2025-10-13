@@ -17,7 +17,7 @@ tokens = [
     'INHERENCE', 'VALUE', 'FORMAL', 'CONSTITUTION',
 
     #Palavras reservadas:
-    'GENSET', 'DISJOINT', 'COMPLETE', 'GENERAL', 'SPECIFICS', 'WHERE', 'PACKAGE'
+    'GENSET', 'DISJOINT', 'COMPLETE', 'GENERAL', 'SPECIFICS', 'WHERE', 'PACKAGE',
 
     #Símbolos especiais:
     'LBRACE', 'RBRACE', 'LPAREN', 'RPAREN', 'LBRACKET', 'RBRACKET',
@@ -221,12 +221,6 @@ def t_RELATION_NAME(t):
     # Se não for, o padrão é ser um RELATION_NAME.
     t.type = reserved.get(t.value, 'RELATION_NAME')
     return t
-
-# ADICIONADO: Regra para tratamento de erros
-def t_error(t):
-    col = find_column(t.lexer.lexdata, t)
-    print(f"Erro Léxico: Caractere ilegal '{t.value[0]}' na linha {t.lexer.lineno}, coluna {col}")
-    t.lexer.skip(1)
 
     # =============================================================================
 # GRUPO 3: FUNÇÕES DE CONTROLE E TRATAMENTO DE ERROS
