@@ -231,10 +231,7 @@ def find_column(input_data, token):
     line_start = input_data.rfind('\n', 0, token.lexpos) + 1
     return (token.lexpos - line_start) + 1
 
-<<<<<<< HEAD
-=======
 # Regra para contar os números das linhas. É essencial para reportar erros.
->>>>>>> 5a7dfba (substituinto o anterior)
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
@@ -292,9 +289,3 @@ subkind Proteina of functional-complexes  specializes Componente_Alimentar
     print("--- FIM DA ANÁLISE LÉXICA ---")
 
 
-<<<<<<< HEAD
-    # Imprime a tabela de forma organizada
-    import json
-    print(json.dumps(symbol_table, indent=4))
-=======
->>>>>>> 5a7dfba (substituinto o anterior)
