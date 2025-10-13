@@ -1,111 +1,183 @@
 import ply.lex as lex
 
-# -----------------------------------------------------------------------------
-# 1. LISTA DE TOKENS E PALAVRAS RESERVADAS
-# -----------------------------------------------------------------------------
+tokens = [
 
-# Palavras reservadas, estereótipos e meta-atributos da linguagem TONTO
+    #Estereótipos de classe:
+    'EVENT', 'SITUATION', 'PROCESS', 'CATEGORY', 'MIXIN',
+    'PHASEMIXIN', 'ROLEMIXIN', 'HISTORICALROLEMIXIN', 'KIND', 'COLLECTIVE',
+    'QUANTITY', 'QUALITY', 'MODE', 'INTRISICMODE', 'EXTRINSICMODE', 'SUBKIND',
+    'PHASE', 'ROLE', 'HISTORICALROLE',
+
+    #Estereótipos de relações:
+    'MATERIAL', 'DERIVATION', 'COMPARATIVE', 'MEDIATION',
+    'CHARACTERIZATION', 'EXTERNALDEPENDENCE', 'COMPONENTOF', 'MEMBEROF',
+    'SUBCOLLECTIONOF', 'SUBQUALITYOF', 'INSTANTIATION', 'TERMINATION',
+    'PARTICIPATIONAL', 'PARTICIPATION', 'HISTORICALDEPENDENCE', 'CREATION',
+    'MANIFESTATION', 'BRINGSABOUT', 'TRIGGERS', 'COMPOSITION', 'AGGREGATION',
+    'INHERENCE', 'VALUE', 'FORMAL', 'CONSTITUTION',
+
+    #Palavras reservadas:
+    'GENSET', 'DISJOINT', 'COMPLETE', 'GENERAL', 'SPECIFICS', 'WHERE', 'PACKAGE',
+
+    #Símbolos especiais:
+    'LBRACE', 'RBRACE', 'LPAREN', 'RPAREN', 'LBRACKET', 'RBRACKET',
+    'DOTDOT', 'ARROW_RL', 'ARROW_LR', 'ASTERISK', 'AT', 'COLON',
+
+    #Nomes de classes: Aqui precisaremos fazer uma função específica para compreender corretamente o que é o nome de uma classe.
+    'CLASS_NAME',
+
+    #Convenção para nomes de relações: Também há uma função para especificar corretamente, como definido pelo professor.
+    'RELATION_NAME',
+
+    #Convenção para instâncias: Também há uma função para especificar corretamente.
+    'INSTANCE_NAME',
+
+    # --- TOKENS PARA OS NOMES DOS TIPOS (PALAVRAS-CHAVE) --- NÃO DEVEM PRECISAR DE FUNÇÕES ESPECÍFICAS
+    'NUMBER_TYPE',       # Para a palavra 'number'
+    'STRING_TYPE',       # Para a palavra 'string'
+    'BOOLEAN_TYPE',      # Para a palavra 'boolean'
+    'DATE_TYPE',         # Para a palavra 'date'
+    'TIME_TYPE',         # Para a palavra 'time'
+    'DATETIME_TYPE',     # Para a palavra 'datetime'
+
+    # --- TOKENS PARA OS VALORES LITERAIS --- NÃO PRECISA DE FUNÇÃO
+    'NUMBER',            # Para um valor como 123, 42, etc.
+    'STRING',            # Para um valor como "Olá Mundo"
+    'BOOLEAN_VALUE',     # Para as palavras 'true' e 'false'
+    # Tokens para literais de data/hora --- TODOS ABAIXO PRECISAM DE FUNÇÃO ESPECÍFICAS
+    'DATE_LITERAL',      # Para um valor como '2025-10-13'
+    'TIME_LITERAL',      # Para um valor como '15:30:00'
+    'DATETIME_LITERAL',  # Para um valor como '2025-10-13T15:30:00'
+    
+    #Token específico para tipos de dados personalisados. Exemplo: CPFDataType, PhoneNumberDataType. Aqui temos outra função específica.
+    'NEW_DATATYPE'
+
+    #Meta-atributos: Aqui não há regras específicas, apenas nomes.
+    'ORDERED', 'CONST', 'DERIVED', 'SUBSETS', 'REDEFINES',
+]
+
 reserved = {
-    # Palavras-chave da estrutura
-    'package': 'PACKAGE', 'class': 'CLASS', 'datatype': 'DATATYPE', 'attributes': 'ATTRIBUTES',
-    'associations': 'ASSOCIATIONS', 'generalizations': 'GENERALIZATIONS', 'genset': 'GENSET',
-    'disjoint': 'DISJOINT', 'complete': 'COMPLETE', 'general': 'GENERAL', 'specifics': 'SPECIFICS',
-    'where': 'WHERE',
+    #Estereótipos de classe:
+    'event'     : 'EVENT',
+    'situtation': 'SITUATION',
+    'process'   : 'PROCESS',
+    'category'  : 'CATEGORY',
+    'mixin'     : 'MIXIN',
+    'phasemixin': 'PHASEMIXIN',
+    'rolemixin' : 'ROLEMIXIN',
+    'historicalrolemixin' : 'HISTORICALROLEMIXIN',
+    'kind'      : 'KIND',
+    'COLLECTIVE': 'COLLECTIVE',
+    'quantity'  : 'QUANTITY',
+    'mode'      : 'MODE',
+    'intrisicmode' : 'INTRISICMODE',
+    'extrinsicmode'  : 'EXTRINSICMODE',
+    'SUBKIND' : 'SUBKIND',
+    'phase'     : 'PHASE',
+    'role'      : 'ROLE',
+    'historicalrole'  : 'HISTORICALROLE',
 
-    # Estereótipos de Classe
-    'event': 'EVENT', 'situation': 'SITUATION', 'process': 'PROCESS', 'category': 'CATEGORY',
-    'mixin': 'MIXIN', 'phaseMixin': 'PHASEMIXIN', 'roleMixin': 'ROLEMIXIN',
-    'historicalRoleMixin': 'HISTORICALROLEMIXIN', 'kind': 'KIND', 'collective': 'COLLECTIVE',
-    'quantity': 'QUANTITY', 'quality': 'QUALITY', 'mode': 'MODE', 'intrisicMode': 'INTRISICMODE',
-    'extrinsicMode': 'EXTRINSICMODE', 'subkind': 'SUBKIND', 'phase': 'PHASE', 'role': 'ROLE',
-    'historicalRole': 'HISTORICALROLE',
+    #Estereótipos de relações:
+    'material'  : 'MATERIAL',
+    'derivation': 'DERIVATION',
+    'comparative' : 'COMPARATIVE',
+    'mediation' : 'MEDIATION',
+    'characterization'  : 'CHARACTERIZATION',
+    'externaldependence' : 'EXTERNALDEPENDENCE',
+    'componentof'  : 'COMPONENTOF',
+    'memberof'  : 'MEMBEROF',
+    'subcollectionof' : 'SUBCOLLECTIONOF',
+    'subqualityof' : 'SUBQUALITYOF',
+    'instantiation': 'INSTANTIATION',
+    'termination' : 'TERMINATION',
+    'participational'  : 'PARTICIPATIONAL',
+    'participation'    : 'PARTICIPATION',
+    'historicaldependence'  : 'HISTORICALDEPENDENCE',
+    'creation' : 'CREATION',
+    'manifestation' : 'MANIFESTATION',
+    'bringsabout' : 'BRINGSABOUT',
+    'triggers' : 'TRIGGERS',
+    'composition' : 'COMPOSITION',
+    'aggregatopm' : 'AGGREGATION',
+    'inherence' : 'INHERENCE',
+    'value ': 'VALUE',
+    'formal' : 'FORMAL',
+    'constitution' : 'CONSTITUTION',
 
-    # Estereótipos de Relação
-    'material': 'MATERIAL', 'derivation': 'DERIVATION', 'comparative': 'COMPARATIVE',
-    'mediation': 'MEDIATION', 'characterization': 'CHARACTERIZATION',
-    'externalDependence': 'EXTERNALDEPENDENCE', 'componentOf': 'COMPONENTOF', 'memberOf': 'MEMBEROF',
-    'subCollectionOf': 'SUBCOLLECTIONOF', 'subQualityOf': 'SUBQUALITYOF',
-    'instantiation': 'INSTANTIATION', 'termination': 'TERMINATION', 'participational': 'PARTICIPATIONAL',
-    'participation': 'PARTICIPATION', 'historicalDependence': 'HISTORICALDEPENDENCE',
-    'creation': 'CREATION', 'manifestation': 'MANIFESTATION', 'bringsAbout': 'BRINGSABOUT',
-    'triggers': 'TRIGGERS', 'composition': 'COMPOSITION', 'aggregation': 'AGGREGATION',
-    'inherence': 'INHERENCE', 'value': 'VALUE', 'formal': 'FORMAL', 'constitution': 'CONSTITUTION',
+    #Palavras reservadas: genset, disjoint, complete, general, specifics, where, package:
+    'package'   : 'PACKAGE',
+    'class'     : 'CLASS',
+    'genset'    : 'GENSET',
+    'disjoint'  : 'DISJOINT',
+    'complete'  : 'COMPLETE',
+    'general'   : 'GENERAL',
+    'specifics' : 'SPECIFICS',
+    'where'     : 'WHERE',
 
-    # Meta-atributos
-    'ordered': 'ORDERED', 'const': 'CONST', 'derived': 'DERIVED',
-    'subsets': 'SUBSETS', 'redefines': 'REDEFINES',
+    #Símbolos especiais: “{“, “}”, “(“, “)”, “[“, “]”, “..”, “<>--” , “--<>”, “*”, “@”, “:”.
+    #São especificados usando expressões regulares
 
-    # Tipos de Dados Nativos (tratados como palavras-chave)
-    'string': 'STRING_TYPE', 'number': 'NUMBER_TYPE', 'boolean': 'BOOLEAN_TYPE',
-    'date': 'DATE_TYPE', 'time': 'TIME_TYPE', 'datetime': 'DATETIME_TYPE',
+    #Tipos de dados primitivos
+    'number'    : 'NUMBER_TYPE',
+    'string'    : 'STRING_TYPE',
+    'boolean'   : 'BOOLEAN_TYPE',
+    'date'      : 'DATE_TYPE',
+    'time'      : 'TIME_TYPE',
+    'datetime'  : 'DATETIME_TYPE',
 
-    # Valores Booleanos
-    'true': 'BOOLEAN_VALUE', 'false': 'BOOLEAN_VALUE',
+    #Valores booleanos 'true' e 'false':
+    'true'      : 'BOOLEAN_VALUE',
+    'false'     : 'BOOLEAN_VALUE',
+
+    #Meta atributos:
+    'ordered'   : 'ORDERED',
+    'const'     : 'CONST',
+    'derived'   : 'DERIVED',
+    'subsets'   : 'SUBSETS',
+    'redefines' : 'REDEFINES',
 }
 
-# Lista completa de nomes de tokens.
-# É uma combinação dos símbolos que definiremos manualmente
-# com todos os valores do dicionário 'reserved'.
-tokens = [
-    # Identificadores e Literais
-    'ID', 'CLASS_NAME', 'RELATION_NAME', 'INSTANCE_NAME', 'NEW_DATATYPE',
-    'NUMBER', 'STRING',
-
-    # Símbolos Especiais
-    'LBRACE', 'RBRACE', 'LPAREN', 'RPAREN', 'LBRACKET', 'RBRACKET',
-    'COMMA', 'COLON', 'DOTDOT', 'ASTERISK', 'AT', 'ARROW_RL', 'ARROW_LR',
-] + list(reserved.values())
-
-
-# -----------------------------------------------------------------------------
-# 2. REGRAS PARA TOKENS SIMPLES (SÍMBOLOS)
-# -----------------------------------------------------------------------------
-
-# Expressões regulares para símbolos simples. A ordem aqui não importa.
+#Símbolos especiais:
 t_LBRACE      = r'\{'
 t_RBRACE      = r'\}'
 t_LPAREN      = r'\('
 t_RPAREN      = r'\)'
 t_LBRACKET    = r'\['
 t_RBRACKET    = r'\]'
-t_COMMA       = r','
-t_COLON       = r':'
-t_DOTDOT      = r'\.\.'
+
+# Outros Símbolos
+t_DOTDOT      = r'\.\.'  # O ponto também precisa ser escapado
 t_ASTERISK    = r'\*'
 t_AT          = r'@'
+t_COLON       = r':'
+
+# Símbolos Compostos
 t_ARROW_RL    = r'<>--'
 t_ARROW_LR    = r'--<>'
 
-# Regra para ignorar espaços, tabulações. Note que removemos o '\n'.
-t_ignore = ' \t'
+#-----------------------------------------------------------------------------------------------------------------------------
+# Grupo 1: Aqui começamos as funções mais específicas. No PLY, a ordem de precedências das funções define quais serão testadas primeiro
+#-----------------------------------------------------------------------------------------------------------------------------
 
-
-# -----------------------------------------------------------------------------
-# 3. REGRAS PARA TOKENS COMPLEXOS (COM FUNÇÕES)
-# -----------------------------------------------------------------------------
-
-# A ordem das funções importa! PLY testa as regras na ordem em que aparecem.
-# Regras mais específicas devem vir antes das mais genéricas.
-
-def t_NEW_DATATYPE(t):
-    r'[a-zA-Z]+DataType'
+# Regra para Datetime: é a mais longa e específica do grupo de datas, então vem primeiro.
+def t_DATETIME_LITERAL(t):
+    r"'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}'"
+    t.value = t.value[1:-1]
     return t
 
-def t_INSTANCE_NAME(t):
-    r'[a-zA-Z][a-zA-Z_]*[0-9]+'
+# Regra para Date: é menos específica que Datetime.
+def t_DATE_LITERAL(t):
+    r"'\d{4}-\d{2}-\d{2}'"
+    t.value = t.value[1:-1]
     return t
 
-def t_ID(t):
-    r'[a-zA-Z_][a-zA-Z_]*'  # Removemos o 0-9 para proibir números
-    t.type = reserved.get(t.value, 'ID')
-
-    if t.type == 'ID':
-        if t.value[0].isupper():
-            t.type = 'CLASS_NAME'
-        else:
-            t.type = 'RELATION_NAME'
+# Regra para Time: também é menos específica que Datetime.
+def t_TIME_LITERAL(t):
+    r"'\d{2}:\d{2}:\d{2}'"
+    t.value = t.value[1:-1]
     return t
 
+# Regra para Números: um padrão único (só dígitos) que não conflita com os outros.
 def t_NUMBER(t):
     r'\d+'
     t.value = int(t.value)
@@ -113,37 +185,82 @@ def t_NUMBER(t):
 
 def t_STRING(t):
     r'\"([^\\\"]|\\.)*\"'
-    t.value = t.value[1:-1]  # Remove as aspas
+    # Esta linha é importante: ela remove as aspas do início e do fim
+    # do valor do token, deixando apenas o conteúdo limpo da string.
+    t.value = t.value[1:-1]
     return t
 
-def t_COMMENT(t):
-    r'//.*'
-    pass  # Nenhum valor de retorno, então o token é descartado
 
-# Adicione esta função para calcular a coluna
-def find_column(input, token):
-    line_start = input.rfind('\n', 0, token.lexpos) + 1
+# =============================================================================
+# GRUPO 2: IDENTIFICADORES COM REGRAS DE NOMENCLATURA
+# =============================================================================
+# Dentro deste grupo, também vamos do mais específico para o mais genérico.
+
+def t_NEW_DATATYPE(t):
+    r'[a-zA-Z]+DataType'
+    return t
+
+# Regra para Nomes de Instâncias: é a mais específica deste grupo
+# porque OBRIGATORIAMENTE termina com um número.
+def t_INSTANCE_NAME(t):
+    r'[a-zA-Z][a-zA-Z_]*[0-9]+'
+    return t
+
+# Regra para Nomes de Classes: captura palavras que começam com
+# letra maiúscula. É menos específica que a anterior.
+def t_CLASS_NAME(t):
+    r'[A-Z][a-zA-Z_]*'
+    return t
+
+# Regra para Nomes de Relações e Palavras-Chave: esta é a regra
+# "pega-tudo" para palavras que começam com minúscula. DEVE ser a
+# ÚLTIMA deste grupo para não capturar os outros por engano.
+def t_RELATION_NAME(t):
+    r'[a-z_][a-zA-Z_]*'
+    # Consulta a "lista VIP" para ver se é uma palavra reservada.
+    # Se não for, o padrão é ser um RELATION_NAME.
+    t.type = reserved.get(t.value, 'RELATION_NAME')
+    return t
+
+    # =============================================================================
+# GRUPO 3: FUNÇÕES DE CONTROLE E TRATAMENTO DE ERROS
+# =============================================================================
+
+# ADICIONADO: Função para calcular a coluna, melhorando os relatórios de erro
+def find_column(input_data, token):
+    line_start = input_data.rfind('\n', 0, token.lexpos) + 1
     return (token.lexpos - line_start) + 1
 
+<<<<<<< HEAD
+=======
+# Regra para contar os números das linhas. É essencial para reportar erros.
+>>>>>>> 5a7dfba (substituinto o anterior)
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 
+# Uma string contendo caracteres a serem ignorados (espaços e tabs).
+# O lexer simplesmente pulará esses caracteres.
+t_ignore  = ' \t'
+
+# Regra para tratamento de erros. É chamada quando o lexer encontra
+# um caractere que não corresponde a nenhuma outra regra.
 def t_error(t):
-    # Agora podemos usar a coluna para um erro mais preciso
+    # Usa a função find_column para dar uma localização exata do erro.
     col = find_column(t.lexer.lexdata, t)
-    print(f"Caractere ilegal '{t.value[0]}' na linha {t.lexer.lineno}, coluna {col}")
+    print(f"Erro Léxico: Caractere ilegal '{t.value[0]}' na linha {t.lexer.lineno}, coluna {col}")
+    # Pula o caractere ilegal e continua a análise.
     t.lexer.skip(1)
 
 
-# -----------------------------------------------------------------------------
-# 4. CONSTRUÇÃO E EXECUÇÃO DO LEXER
-# -----------------------------------------------------------------------------
-
-# Constrói o analisador léxico
+#Parte da execução prática
 lexer = lex.lex()
 
+# Este bloco só é executado quando você roda o script diretamente (ex: python seu_arquivo.py)
 if __name__ == '__main__':
+
+    # Um exemplo de código na linguagem TONTO para testar nosso analisador.
+    # Ele contém palavras-chave, nomes, símbolos, literais e comentários.
     data = """
     import alergiaalimentar
 
@@ -154,134 +271,30 @@ kind Paciente
 kind Alimento
 
 subkind Proteina of functional-complexes  specializes Componente_Alimentar 
-
-phase Crianca of functional-complexes  specializes Paciente 
-
-phase Adulto of functional-complexes  specializes Paciente 
-
-subkind Aditivo_Alimentar of functional-complexes  specializes Componente_Alimentar 
-
-subkind Carboidrato of functional-complexes  specializes Componente_Alimentar 
-
-subkind Imuno_Mediada of relators  specializes Alergia 
-
-subkind Nao_Imuno_Mediada of relators  specializes Alergia 
-
-mode Sintoma
-
-subkind Cutaneo of intrinsic-modes  specializes Sintoma 
-
-subkind Gastrointestinal of intrinsic-modes  specializes Sintoma 
-
-subkind Respiratorio of intrinsic-modes  specializes Sintoma 
-
-subkind Sistemico of intrinsic-modes  specializes Sintoma 
-
-role Alergeno of functional-complexes  specializes Componente_Alimentar 
-
-relator Tratamento
-
-relator Diagnostico
-
-subkind Mista of relators  specializes Alergia 
-
-kind Profissional_de_Saude
-
-subkind Ingrediente of functional-complexes  specializes Alimento 
-
-subkind Formula of functional-complexes  specializes Alimento 
-
-subkind Teste_de_Dosagem_IgE_Serica of functional-complexes  specializes Procedimento 
-
-subkind Teste_de_Provocacao_Oral of functional-complexes  specializes Procedimento 
-
-kind Procedimento
-
-subkind Dieta_de_Exclusao of relators  specializes Tratamento 
-
-subkind Medicamento of relators  specializes Tratamento 
-
-subkind Imunoterapia_Oral of relators  specializes Tratamento 
-
-quality Comobidarde_Alergica
-
-quality Heranca_Genetica
-
-event Reacao_Cruzada specializes Reacao_Adversa 
-
-relator Alergia
-
-event Reacao_Adversa
-
-kind Componente_Alimentar
-
-event Consumo_Alimentar
-
-subkind Teste_Cutaneo of functional-complexes  specializes Procedimento 
-
-mode Disposicao_Alergica
-
-situation Exposicao_ao_Alergeno
-
-relator Avaliacao_de_Risco
-
-quality Nivel_de_Risco
-
-genset disjoint_complete {
-    general Componente_Alimentar
-    specifics Proteina, Aditivo_Alimentar, Carboidrato
-}
-
-genset disjoint_complete {
-    general Alergia
-    specifics Imuno_Mediada, Mista, Nao_Imuno_Mediada
-}
-
-genset disjoint_complete {
-    general Sintoma
-    specifics Respiratorio, Sistemico, Gastrointestinal, Cutaneo
-}
-
-genset disjoint_complete {
-    general Procedimento
-    specifics Teste_Cutaneo, Teste_de_Dosagem_IgE_Serica, Teste_de_Provocacao_Oral
-}
-
-genset disjoint_complete {
-    general Alimento
-    specifics Formula, Ingrediente
-}
-
-genset disjoint_complete {
-    general Paciente
-    specifics Crianca, Adulto
-}
-
-genset disjoint_complete {
-    general Tratamento
-    specifics Imunoterapia_Oral, Medicamento, Dieta_de_Exclusao
-}
     """
 
+    # 1. Fornece a string de dados para o analisador léxico.
     lexer.input(data)
 
-    # Cria a tabela de símbolos como uma lista de dicionários
-    symbol_table = []
+    # 2. Inicia um loop infinito para processar os tokens um por um.
+    print("--- INÍCIO DA ANÁLISE LÉXICA (TABELA DE SÍMBOLOS) ---")
     while True:
+        # Pega o próximo token encontrado no texto.
         tok = lexer.token()
+
+        # Se não houver mais tokens (chegou ao fim do arquivo), o loop é interrompido.
         if not tok:
             break
-        
-        # Calcula a coluna para cada token
-        column = find_column(data, tok)
 
-        symbol_table.append({
-            'lexema': tok.value,
-            'tipo': tok.type,
-            'linha': tok.lineno,
-            'coluna': column
-        })
+        # Imprime o token encontrado, mostrando seu tipo, valor, linha e coluna.
+        print(f"Tipo: {tok.type:<20} | Lexema: '{str(tok.value):<20}' | Linha: {tok.lineno:<4} | Coluna: {find_column(data, tok)}")
 
+    print("--- FIM DA ANÁLISE LÉXICA ---")
+
+
+<<<<<<< HEAD
     # Imprime a tabela de forma organizada
     import json
     print(json.dumps(symbol_table, indent=4))
+=======
+>>>>>>> 5a7dfba (substituinto o anterior)
