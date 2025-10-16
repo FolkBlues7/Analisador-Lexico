@@ -17,7 +17,7 @@ tokens = [
     'INHERENCE', 'VALUE', 'FORMAL', 'CONSTITUTION',
 
     #Palavras reservadas:
-    'GENSET', 'DISJOINT', 'COMPLETE', 'GENERAL', 'SPECIFICS', 'WHERE', 'PACKAGE',
+    'GENSET', 'DISJOINT', 'COMPLETE', 'GENERAL', 'SPECIFICS', 'WHERE', 'PACKAGE', 'IMPORT', 'FUNCTIONALCOMPLEXES', 'CLASS',
 
     #Símbolos especiais:
     'LBRACE', 'RBRACE', 'LPAREN', 'RPAREN', 'LBRACKET', 'RBRACKET',
@@ -59,23 +59,24 @@ tokens = [
 reserved = {
     #Estereótipos de classe:
     'event'     : 'EVENT',
-    'situtation': 'SITUATION',
+    'situation': 'SITUATION',
     'process'   : 'PROCESS',
     'category'  : 'CATEGORY',
     'mixin'     : 'MIXIN',
-    'phasemixin': 'PHASEMIXIN',
-    'rolemixin' : 'ROLEMIXIN',
-    'historicalrolemixin' : 'HISTORICALROLEMIXIN',
+    'phaseMixin': 'PHASEMIXIN',
+    'roleMixin' : 'ROLEMIXIN',
+    'historicalRoleMixin' : 'HISTORICALROLEMIXIN',
     'kind'      : 'KIND',
-    'COLLECTIVE': 'COLLECTIVE',
+    'collective': 'COLLECTIVE',
     'quantity'  : 'QUANTITY',
+    'quality'   : 'QUALITY',
     'mode'      : 'MODE',
-    'intrisicmode' : 'INTRISICMODE',
-    'extrinsicmode'  : 'EXTRINSICMODE',
+    'intrisicMode' : 'INTRISICMODE',
+    'extrinsicMode'  : 'EXTRINSICMODE',
     'SUBKIND' : 'SUBKIND',
     'phase'     : 'PHASE',
     'role'      : 'ROLE',
-    'historicalrole'  : 'HISTORICALROLE',
+    'historicalRole'  : 'HISTORICALROLE',
 
     #Estereótipos de relações:
     'material'  : 'MATERIAL',
@@ -83,19 +84,19 @@ reserved = {
     'comparative' : 'COMPARATIVE',
     'mediation' : 'MEDIATION',
     'characterization'  : 'CHARACTERIZATION',
-    'externaldependence' : 'EXTERNALDEPENDENCE',
-    'componentof'  : 'COMPONENTOF',
-    'memberof'  : 'MEMBEROF',
-    'subcollectionof' : 'SUBCOLLECTIONOF',
-    'subqualityof' : 'SUBQUALITYOF',
+    'externalDependence' : 'EXTERNALDEPENDENCE',
+    'componentOf'  : 'COMPONENTOF',
+    'memberOf'  : 'MEMBEROF',
+    'subCollectionoOf' : 'SUBCOLLECTIONOF',
+    'subQualityOf' : 'SUBQUALITYOF',
     'instantiation': 'INSTANTIATION',
     'termination' : 'TERMINATION',
     'participational'  : 'PARTICIPATIONAL',
     'participation'    : 'PARTICIPATION',
-    'historicaldependence'  : 'HISTORICALDEPENDENCE',
+    'historicalDependence'  : 'HISTORICALDEPENDENCE',
     'creation' : 'CREATION',
     'manifestation' : 'MANIFESTATION',
-    'bringsabout' : 'BRINGSABOUT',
+    'bringsAbout' : 'BRINGSABOUT',
     'triggers' : 'TRIGGERS',
     'composition' : 'COMPOSITION',
     'aggregatopm' : 'AGGREGATION',
@@ -105,14 +106,16 @@ reserved = {
     'constitution' : 'CONSTITUTION',
 
     #Palavras reservadas: genset, disjoint, complete, general, specifics, where, package:
-    'package'   : 'PACKAGE',
-    'class'     : 'CLASS',
     'genset'    : 'GENSET',
     'disjoint'  : 'DISJOINT',
     'complete'  : 'COMPLETE',
     'general'   : 'GENERAL',
     'specifics' : 'SPECIFICS',
     'where'     : 'WHERE',
+    'package'   : 'PACKAGE',
+    'class'     : 'CLASS',
+    'import'   : 'IMPORT',
+    'functional-complexes': 'FUNCTIONALCOMPLEXES',
 
     #Símbolos especiais: “{“, “}”, “(“, “)”, “[“, “]”, “..”, “<>--” , “--<>”, “*”, “@”, “:”.
     #São especificados usando expressões regulares
@@ -216,7 +219,7 @@ def t_CLASS_NAME(t):
 # "pega-tudo" para palavras que começam com minúscula. DEVE ser a
 # ÚLTIMA deste grupo para não capturar os outros por engano.
 def t_RELATION_NAME(t):
-    r'[a-z_][a-zA-Z_]*'
+    r'[a-z][a-zA-Z_\-]*'
     # Consulta a "lista VIP" para ver se é uma palavra reservada.
     # Se não for, o padrão é ser um RELATION_NAME.
     t.type = reserved.get(t.value, 'RELATION_NAME')
