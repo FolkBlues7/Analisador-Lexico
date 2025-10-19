@@ -78,12 +78,12 @@ def t_NEW_DATATYPE(t):
     r'[a-zA-Z]+DataType'
     return t
 
-def t_INSTANCE_NAME(t):
-    r'[a-zA-Z][a-zA-Z_]*[0-9]+'
+def t_CLASS_NAME(t):
+    r'[A-Z][a-zA-Z0-9_]*'
     return t
 
-def t_CLASS_NAME(t):
-    r'[A-Z][a-zA-Z_]*'
+def t_INSTANCE_NAME(t):
+    r'[a-zA-Z][a-zA-Z_]*[0-9]+'
     return t
 
 # Regra que captura Relações, Estereótipos e Palavras Reservadas
