@@ -34,6 +34,8 @@ t_COLON         = r':'
 # Símbolos Compostos
 t_ARROW_RL      = r'<>--'
 t_ARROW_LR      = r'--<>'
+t_DOUBLE_HYPHEN = r'--' #adicionado depois na nova versão do PDF
+
 
 # Ignora espaços, tabs e comentários
 t_ignore        = ' \t'
