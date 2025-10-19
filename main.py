@@ -395,6 +395,8 @@ def main():
         # 1. Inicializa um contador para os tipos de token
         token_counts = Counter()
 
+        lexer.lineno = 1 #isso serve apenas para resetar o contador sempre que uma nova análise for feita
+
         # 2. Fornece o código ao lexer
         lexer.input(codigo_para_analise)
 
