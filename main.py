@@ -1,8 +1,11 @@
-# Importa o objeto lexer e a função auxiliar do pacote lexer
-from lexer.lexer import run_lexer_test
-import os # <-- Adicionar importação de 'os'
-# Adicionar importação de 'sys' para sair em caso de erro fatal
+# Importa o objeto lexer do módulo lexer
+from lexer.lexer import lexer 
+# Importa 'os' para manipulação de caminhos de arquivo
+import os
+# Importa 'sys' para funções de sistema (não usado diretamente, mas boa prática)
 import sys
+# Importa a classe Counter para facilitar a contagem dos tokens
+from collections import Counter
 
 # =============================================================================
 # EXEMPLOS DE ENTRADA
@@ -329,11 +332,10 @@ def main():
         print(" SELECIONE O TESTE DE ANÁLISE LÉXICA ".center(50))
         print("="*50)
         
-        # Lista as opções de teste (agora com 4 exemplos internos)
+        # Lista as opções de teste
         for key, example in TEST_EXAMPLES.items():
             print(f" {key}. {example['name']}")
             
-        # >> NOVA OPÇÃO AQUI <<
         print(" 5. Testar Arquivo Externo (.tonto)")
         print(" Q. Sair")
         print("-" * 50)
@@ -345,20 +347,20 @@ def main():
             print("Encerrando o analisador. Até logo!")
             break
             
+        codigo_para_analise = ""
+        nome_do_teste = ""
+
         if escolha in TEST_EXAMPLES:
-            # Lógica para exemplos internos 1, 2, 3, 4
             exemplo_selecionado = TEST_EXAMPLES[escolha]
             codigo_para_analise = exemplo_selecionado['code']
             nome_do_teste = exemplo_selecionado['name']
             
         elif escolha == '5':
-            # >> MENSAGEM DE AJUDA ADICIONADA AQUI <<
             print("\n--- INSTRUÇÕES PARA ARQUIVO EXTERNO ---")
-            print("1. Para simplificar, coloque o arquivo .tonto na pasta 'test'.")
-            print("2. Digite o caminho completo incluindo o nome e extensão do arquivo (ex: 'C:\\Users\\Cliente\\Documents\\Analisador-Lexico-main\\tests\\car.tonto'.")
+            print("1. Coloque o arquivo .tonto em um local acessível.")
+            print("2. Digite o caminho completo do arquivo (ex: 'C:\\Users\\SeuUsuario\\Desktop\\meu_teste.tonto').")
             print("---------------------------------------")
-            # >> NOVA LÓGICA PARA ARQUIVO EXTERNO <<
-            file_path = input("Digite o caminho/nome do arquivo .tonto: ").strip()
+            file_path = input("Digite o caminho do arquivo .tonto: ").strip()
             
             # 1. Verificar se o arquivo existe
             if not os.path.exists(file_path):
@@ -370,10 +372,7 @@ def main():
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     codigo_para_analise = f.read()
-                
-                # Definir nome do teste
                 nome_do_teste = f"Arquivo Externo: {os.path.basename(file_path)}"
-                
             except Exception as e:
                 print(f"\n[ERRO] Não foi possível ler o arquivo: {e}")
                 continue # Volta ao menu principal
@@ -387,14 +386,43 @@ def main():
         print(f" Executando: {nome_do_teste}".center(50))
         print("#" * 50)
         
-        # Chama a função que executa o lexer, importada de lexer.py
-        tokens_output = run_lexer_test(codigo_para_analise, nome_do_teste)
-        
-        print("\n=== CÓDIGO FONTE ===")
+        print("\n=== CÓDIGO FONTE ANALISADO ===")
         print(codigo_para_analise)
-        print("\n=== TOKENS RECONHECIDOS ===")
-        for token_line in tokens_output:
-            print(token_line)
+        print("---------------------------------")
+        
+        # << INÍCIO DA NOVA LÓGICA >>
+        
+        # 1. Inicializa um contador para os tipos de token
+        token_counts = Counter()
+
+        # 2. Fornece o código ao lexer
+        lexer.input(codigo_para_analise)
+
+        print("\n=== VISÃO ANALÍTICA (LISTA DE TOKENS) ===")
+        # 3. Itera sobre todos os tokens encontrados
+        while True:
+            token = lexer.token()
+            if not token:
+                break  # Fim da análise
+            
+            # Imprime o token encontrado (Visão Analítica)
+            print(f"  [Tipo: {token.type:<20} Lexema: '{token.value}' Linha: {token.lineno}]")
+            
+            # Atualiza a contagem para o tipo do token atual
+            token_counts[token.type] += 1
+            
+        # 4. Seção para imprimir a Tabela de Síntese
+        print("\n" + "="*50)
+        print("=== TABELA DE SÍNTESE (CONTAGEM DE TOKENS) ===".center(50))
+        print("="*50)
+
+        if not token_counts:
+            print("Nenhum token foi encontrado.")
+        else:
+            # Ordena os itens por nome do token para uma exibição consistente
+            for token_type, count in sorted(token_counts.items()):
+                print(f"  {token_type:<25}: {count}")
+        # << FIM DA NOVA LÓGICA >>
 
 if __name__ == "__main__":
     main()
