@@ -24,6 +24,7 @@ tokens = [
     # Símbolos especiais:
     'LBRACE', 'RBRACE', 'LPAREN', 'RPAREN', 'LBRACKET', 'RBRACKET',
     'DOTDOT', 'ARROW_RL', 'ARROW_LR', 'ASTERISK', 'AT', 'COLON',
+    'COMMA',
 
     # Nomes/Convenções (Identificadores):
     'CLASS_NAME',      # Nome de Classes (Começa com Maiúscula)

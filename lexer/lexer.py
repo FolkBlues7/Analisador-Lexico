@@ -25,11 +25,13 @@ t_RPAREN        = r'\)'
 t_LBRACKET      = r'\['
 t_RBRACKET      = r'\]'
 
+
 # Outros Símbolos
 t_DOTDOT        = r'\.\.'
 t_ASTERISK      = r'\*'
 t_AT            = r'@'
 t_COLON         = r':'
+t_COMMA         = r','
 
 # Símbolos Compostos
 t_ARROW_RL      = r'<>--'
