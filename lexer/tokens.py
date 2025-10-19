@@ -16,7 +16,7 @@ tokens = [
     'SUBCOLLECTIONOF', 'SUBQUALITYOF', 'INSTANTIATION', 'TERMINATION',
     'PARTICIPATIONAL', 'PARTICIPATION', 'HISTORICALDEPENDENCE', 'CREATION',
     'MANIFESTATION', 'BRINGSABOUT', 'TRIGGERS', 'COMPOSITION', 'AGGREGATION',
-    'INHERENCE', 'VALUE', 'FORMAL', 'CONSTITUTION',
+    'INHERENCE', 'VALUE', 'FORMAL', 'CONSTITUTION', 'SPECIALIZES',
 
     # Palavras reservadas:
     'GENSET', 'DISJOINT', 'COMPLETE', 'GENERAL', 'SPECIFICS', 'WHERE', 'PACKAGE', 'IMPORT', 'FUNCTIONALCOMPLEXES', 'CLASS', 'DOUBLE_HYPHEN',
@@ -75,7 +75,7 @@ reserved = {
     'participation': 'PARTICIPATION', 'historicalDependence': 'HISTORICALDEPENDENCE',
     'creation': 'CREATION', 'manifestation': 'MANIFESTATION', 'bringsAbout': 'BRINGSABOUT',
     'triggers': 'TRIGGERS', 'composition': 'COMPOSITION', 'aggregation': 'AGGREGATION',
-    'inherence': 'INHERENCE', 'value': 'VALUE', 'formal': 'FORMAL', 'constitution': 'CONSTITUTION',
+    'inherence': 'INHERENCE', 'value': 'VALUE', 'formal': 'FORMAL', 'constitution': 'CONSTITUTION', 'specializes' : 'SPECIALIZES',
 
     # Palavras reservadas (Comandos de estrutura):
     'genset': 'GENSET', 'disjoint': 'DISJOINT', 'complete': 'COMPLETE',
