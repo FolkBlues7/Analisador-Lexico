@@ -1,49 +1,43 @@
-Analisador Léxico para a Linguagem TONTO
+# Analisador Léxico para a Linguagem TONTO
 
 Projeto da disciplina de Compiladores para a criação de um analisador léxico em Python para a "Textual Ontology Language" (TONTO).
 
-📖 Sobre o Projeto
+## 📖 Sobre o Projeto
 
-TONTO (Textual Ontology Language) é uma linguagem textual para a especificação de ontologias computacionais. Este projeto implementa a primeira fase de um compilador para a linguagem, o analisador léxico, responsável por ler o código-fonte .tonto e convertê-lo em uma sequência de tokens (as menores unidades lógicas da linguagem).
+**TONTO** (Textual Ontology Language) é uma linguagem textual para a especificação de ontologias computacionais. Este projeto implementa a primeira fase de um compilador para a linguagem, o **analisador léxico**, responsável por ler o código-fonte `.tonto` e convertê-lo em uma sequência de tokens (as menores unidades lógicas da linguagem).
 
-O analisador foi construído em Python utilizando a biblioteca PLY (Python Lex-Yacc).
+O analisador foi construído em Python utilizando a biblioteca [PLY (Python Lex-Yacc)](http://www.dabeaz.com/ply/).
 
-✨ Funcionalidades
+## ✨ Funcionalidades
 
-    Reconhecimento Completo: Identifica todos os estereótipos, palavras-chave e símbolos especiais da linguagem TONTO.
+*   **Reconhecimento Completo**: Identifica todos os estereótipos, palavras-chave e símbolos especiais da linguagem TONTO.
 
-    Identificadores Complexos: Classifica corretamente os diferentes tipos de identificadores:
+*   **Identificadores Complexos**: Classifica corretamente os diferentes tipos de identificadores:
+    *   `CLASS_NAME` (Ex: `Car`, `Criterion_A2i`)
+    *   `INSTANCE_NAME` (Ex: `Planeta2`)
+    *   `RELATION_NAME` (Ex: `involvesOwner`)
+    *   `NEW_DATATYPE` (Ex: `CPFDataType`)
 
-        CLASS_NAME (Ex: Car, Criterion_A2i)
+*   **Literais**: Analisa e extrai valores de `STRING`, `DATE_LITERAL`, `TIME_LITERAL` e `DATETIME_LITERAL`.
 
-        INSTANCE_NAME (Ex: Planeta2)
+*   **Interface Interativa**: Um menu de linha de comando (CLI) amigável para testar exemplos internos ou analisar arquivos `.tonto` externos.
 
-        RELATION_NAME (Ex: involvesOwner)
+*   **Dupla Visualização de Saída**:
+    *   **Visão Analítica**: Uma lista detalhada de cada token encontrado, seu lexema (valor) e a linha.
+    *   **Tabela de Síntese**: Um resumo quantitativo com a contagem de cada tipo de token ao final da análise.
 
-        NEW_DATATYPE (Ex: CPFDataType)
+*   **Relatório de Erros**: Captura caracteres ilegais e informa a linha onde o erro léxico ocorreu.
 
-    Literais: Analisa e extrai valores de STRING, DATE_LITERAL, TIME_LITERAL e DATETIME_LITERAL.
+## 🛠️ Tecnologias Utilizadas
 
-    Interface Interativa: Um menu de linha de comando (CLI) amigável para testar exemplos internos ou analisar arquivos .tonto externos.
+*   Python 3.x
+*   [PLY (Python Lex-Yacc)](http://www.dabeaz.com/ply/)
 
-    Dupla Visualização de Saída:
-
-        Visão Analítica: Uma lista detalhada de cada token encontrado, seu lexema (valor) e a linha.
-
-        Tabela de Síntese: Um resumo quantitativo com a contagem de cada tipo de token ao final da análise.
-
-    Relatório de Erros: Captura caracteres ilegais e informa a linha onde o erro léxico ocorreu.
-
-🛠️ Tecnologias Utilizadas
-
-    Python 3.x
-
-    PLY (Python Lex-Yacc)
-
-📁 Estrutura de Pastas
+## 📁 Estrutura de Pastas
 
 Para que o programa funcione corretamente, os arquivos devem estar organizados da seguinte forma:
 
+```
 seu-projeto/
 ├── lexer/
 │   ├── __init__.py          (Arquivo vazio, necessário para o Python)
@@ -52,37 +46,41 @@ seu-projeto/
 ├── main.py                  (O script principal para executar o programa)
 ├── Trabalho_de_Anlise_...pdf (O PDF do trabalho)
 └── README.md                (Este arquivo)
+```
 
-Importante: A pasta lexer deve conter um arquivo chamado __init__.py (pode estar vazio) para que o Python a reconheça como um pacote.
+> **Importante**: A pasta `lexer` deve conter um arquivo chamado `__init__.py` (pode estar vazio) para que o Python a reconheça como um pacote.
 
-🚀 Como Rodar
+## 🚀 Como Rodar
 
 O projeto depende de uma biblioteca externa, a PLY. Siga os passos abaixo para instalar e executar.
 
-1. Requisitos
+### 1. Requisitos
 
-    Python 3 instalado.
+*   Python 3 instalado.
 
-2. Instalação da Dependência
+### 2. Instalação da Dependência
 
-Abra seu terminal ou prompt de comando e instale a biblioteca ply:
-Bash
+Abra seu terminal ou prompt de comando e instale a biblioteca `ply`:
 
+```bash
 pip install ply
+```
 
-3. Execução
+### 3. Execução
 
-Com a dependência instalada, basta rodar o arquivo main.py a partir da pasta raiz do projeto:
-Bash
+Com a dependência instalada, basta rodar o arquivo `main.py` a partir da pasta raiz do projeto:
 
+```bash
 python main.py
+```
 
-Um menu interativo aparecerá no seu terminal. Você pode escolher um dos exemplos internos (1-4) ou a opção 5 para fornecer o caminho de um arquivo .tonto local para análise.
+Um menu interativo aparecerá no seu terminal. Você pode escolher um dos exemplos internos (1-4) ou a opção 5 para fornecer o caminho de um arquivo `.tonto` local para análise.
 
-📋 Exemplo de Saída
+## 📋 Exemplo de Saída
 
 Ao selecionar uma opção no menu (como o Exemplo 2), a saída será parecida com esta:
 
+```
 ==================================================
   SELECIONE O TESTE DE ANÁLISE LÉXICA
 ==================================================
@@ -163,3 +161,4 @@ kind Person
   SPECIALIZES                : 7
   TEENAGER                   : 2
   UNDERMAINTENANCECAR        : 1
+```
