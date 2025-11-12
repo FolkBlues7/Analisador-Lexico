@@ -1,0 +1,424 @@
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    AGGREGATION
+    ARROW_LR
+    ARROW_RL
+    ASTERISK
+    AT
+    BOOLEAN_TYPE
+    BOOLEAN_VALUE
+    BRINGSABOUT
+    CATEGORY
+    CHARACTERIZATION
+    CLASS
+    COLLECTIVE
+    COLON
+    COMMA
+    COMPARATIVE
+    COMPLETE
+    COMPONENTOF
+    COMPOSITION
+    CONST
+    CONSTITUTION
+    CREATION
+    DATETIME_LITERAL
+    DATETIME_TYPE
+    DATE_LITERAL
+    DATE_TYPE
+    DERIVATION
+    DERIVED
+    DISJOINT
+    DOTDOT
+    DOUBLE_HYPHEN
+    EVENT
+    EXTERNALDEPENDENCE
+    EXTRINSICMODE
+    FORMAL
+    FUNCTIONALCOMPLEXES
+    GENERAL
+    HISTORICALDEPENDENCE
+    HISTORICALROLE
+    HISTORICALROLEMIXIN
+    INHERENCE
+    INSTANCE_NAME
+    INSTANTIATION
+    INTRISICMODE
+    LBRACE
+    LBRACKET
+    LPAREN
+    MANIFESTATION
+    MATERIAL
+    MEDIATION
+    MEMBEROF
+    MIXIN
+    MODE
+    NEW_DATATYPE
+    NUMBER
+    NUMBER_TYPE
+    ORDERED
+    PARTICIPATION
+    PARTICIPATIONAL
+    PHASE
+    PHASEMIXIN
+    PROCESS
+    QUALITY
+    QUANTITY
+    RBRACE
+    RBRACKET
+    REDEFINES
+    ROLE
+    ROLEMIXIN
+    RPAREN
+    SITUATION
+    SPECIALIZES
+    SPECIFICS
+    STRING
+    STRING_TYPE
+    SUBCOLLECTIONOF
+    SUBKIND
+    SUBQUALITYOF
+    SUBSETS
+    TERMINATION
+    TIME_LITERAL
+    TIME_TYPE
+    TRIGGERS
+    VALUE
+    WHERE
+
+Grammar
+
+Rule 0     S' -> programa
+Rule 1     programa -> pre_package_decls declaracao_package declaracoes_pos_package
+Rule 2     pre_package_decls -> pre_package_decls import_decl
+Rule 3     pre_package_decls -> empty
+Rule 4     import_decl -> IMPORT CLASS_NAME
+Rule 5     declaracao_package -> PACKAGE CLASS_NAME
+Rule 6     declaracoes_pos_package -> declaracoes_pos_package declaracao_restante
+Rule 7     declaracoes_pos_package -> empty
+Rule 8     declaracao_restante -> tipo_simples CLASS_NAME
+Rule 9     declaracao_restante -> declaracao_genset
+Rule 10    declaracao_restante -> declaracao_relacao
+Rule 11    tipo_simples -> KIND
+Rule 12    declaracao_genset -> GENSET CLASS_NAME
+Rule 13    declaracao_relacao -> RELATION_NAME
+Rule 14    empty -> <empty>
+
+Terminals, with rules where they appear
+
+AGGREGATION          : 
+ARROW_LR             : 
+ARROW_RL             : 
+ASTERISK             : 
+AT                   : 
+BOOLEAN_TYPE         : 
+BOOLEAN_VALUE        : 
+BRINGSABOUT          : 
+CATEGORY             : 
+CHARACTERIZATION     : 
+CLASS                : 
+CLASS_NAME           : 4 5 8 12
+COLLECTIVE           : 
+COLON                : 
+COMMA                : 
+COMPARATIVE          : 
+COMPLETE             : 
+COMPONENTOF          : 
+COMPOSITION          : 
+CONST                : 
+CONSTITUTION         : 
+CREATION             : 
+DATETIME_LITERAL     : 
+DATETIME_TYPE        : 
+DATE_LITERAL         : 
+DATE_TYPE            : 
+DERIVATION           : 
+DERIVED              : 
+DISJOINT             : 
+DOTDOT               : 
+DOUBLE_HYPHEN        : 
+EVENT                : 
+EXTERNALDEPENDENCE   : 
+EXTRINSICMODE        : 
+FORMAL               : 
+FUNCTIONALCOMPLEXES  : 
+GENERAL              : 
+GENSET               : 12
+HISTORICALDEPENDENCE : 
+HISTORICALROLE       : 
+HISTORICALROLEMIXIN  : 
+IMPORT               : 4
+INHERENCE            : 
+INSTANCE_NAME        : 
+INSTANTIATION        : 
+INTRISICMODE         : 
+KIND                 : 11
+LBRACE               : 
+LBRACKET             : 
+LPAREN               : 
+MANIFESTATION        : 
+MATERIAL             : 
+MEDIATION            : 
+MEMBEROF             : 
+MIXIN                : 
+MODE                 : 
+NEW_DATATYPE         : 
+NUMBER               : 
+NUMBER_TYPE          : 
+ORDERED              : 
+PACKAGE              : 5
+PARTICIPATION        : 
+PARTICIPATIONAL      : 
+PHASE                : 
+PHASEMIXIN           : 
+PROCESS              : 
+QUALITY              : 
+QUANTITY             : 
+RBRACE               : 
+RBRACKET             : 
+REDEFINES            : 
+RELATION_NAME        : 13
+ROLE                 : 
+ROLEMIXIN            : 
+RPAREN               : 
+SITUATION            : 
+SPECIALIZES          : 
+SPECIFICS            : 
+STRING               : 
+STRING_TYPE          : 
+SUBCOLLECTIONOF      : 
+SUBKIND              : 
+SUBQUALITYOF         : 
+SUBSETS              : 
+TERMINATION          : 
+TIME_LITERAL         : 
+TIME_TYPE            : 
+TRIGGERS             : 
+VALUE                : 
+WHERE                : 
+error                : 
+
+Nonterminals, with rules where they appear
+
+declaracao_genset    : 9
+declaracao_package   : 1
+declaracao_relacao   : 10
+declaracao_restante  : 6
+declaracoes_pos_package : 1 6
+empty                : 3 7
+import_decl          : 2
+pre_package_decls    : 1 2
+programa             : 0
+tipo_simples         : 8
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . programa
+    (1) programa -> . pre_package_decls declaracao_package declaracoes_pos_package
+    (2) pre_package_decls -> . pre_package_decls import_decl
+    (3) pre_package_decls -> . empty
+    (14) empty -> .
+
+    PACKAGE         reduce using rule 14 (empty -> .)
+    IMPORT          reduce using rule 14 (empty -> .)
+
+    programa                       shift and go to state 1
+    pre_package_decls              shift and go to state 2
+    empty                          shift and go to state 3
+
+state 1
+
+    (0) S' -> programa .
+
+
+
+state 2
+
+    (1) programa -> pre_package_decls . declaracao_package declaracoes_pos_package
+    (2) pre_package_decls -> pre_package_decls . import_decl
+    (5) declaracao_package -> . PACKAGE CLASS_NAME
+    (4) import_decl -> . IMPORT CLASS_NAME
+
+    PACKAGE         shift and go to state 6
+    IMPORT          shift and go to state 7
+
+    declaracao_package             shift and go to state 4
+    import_decl                    shift and go to state 5
+
+state 3
+
+    (3) pre_package_decls -> empty .
+
+    PACKAGE         reduce using rule 3 (pre_package_decls -> empty .)
+    IMPORT          reduce using rule 3 (pre_package_decls -> empty .)
+
+
+state 4
+
+    (1) programa -> pre_package_decls declaracao_package . declaracoes_pos_package
+    (6) declaracoes_pos_package -> . declaracoes_pos_package declaracao_restante
+    (7) declaracoes_pos_package -> . empty
+    (14) empty -> .
+
+    KIND            reduce using rule 14 (empty -> .)
+    GENSET          reduce using rule 14 (empty -> .)
+    RELATION_NAME   reduce using rule 14 (empty -> .)
+    $end            reduce using rule 14 (empty -> .)
+
+    declaracoes_pos_package        shift and go to state 8
+    empty                          shift and go to state 9
+
+state 5
+
+    (2) pre_package_decls -> pre_package_decls import_decl .
+
+    PACKAGE         reduce using rule 2 (pre_package_decls -> pre_package_decls import_decl .)
+    IMPORT          reduce using rule 2 (pre_package_decls -> pre_package_decls import_decl .)
+
+
+state 6
+
+    (5) declaracao_package -> PACKAGE . CLASS_NAME
+
+    CLASS_NAME      shift and go to state 10
+
+
+state 7
+
+    (4) import_decl -> IMPORT . CLASS_NAME
+
+    CLASS_NAME      shift and go to state 11
+
+
+state 8
+
+    (1) programa -> pre_package_decls declaracao_package declaracoes_pos_package .
+    (6) declaracoes_pos_package -> declaracoes_pos_package . declaracao_restante
+    (8) declaracao_restante -> . tipo_simples CLASS_NAME
+    (9) declaracao_restante -> . declaracao_genset
+    (10) declaracao_restante -> . declaracao_relacao
+    (11) tipo_simples -> . KIND
+    (12) declaracao_genset -> . GENSET CLASS_NAME
+    (13) declaracao_relacao -> . RELATION_NAME
+
+    $end            reduce using rule 1 (programa -> pre_package_decls declaracao_package declaracoes_pos_package .)
+    KIND            shift and go to state 16
+    GENSET          shift and go to state 17
+    RELATION_NAME   shift and go to state 18
+
+    declaracao_restante            shift and go to state 12
+    tipo_simples                   shift and go to state 13
+    declaracao_genset              shift and go to state 14
+    declaracao_relacao             shift and go to state 15
+
+state 9
+
+    (7) declaracoes_pos_package -> empty .
+
+    KIND            reduce using rule 7 (declaracoes_pos_package -> empty .)
+    GENSET          reduce using rule 7 (declaracoes_pos_package -> empty .)
+    RELATION_NAME   reduce using rule 7 (declaracoes_pos_package -> empty .)
+    $end            reduce using rule 7 (declaracoes_pos_package -> empty .)
+
+
+state 10
+
+    (5) declaracao_package -> PACKAGE CLASS_NAME .
+
+    KIND            reduce using rule 5 (declaracao_package -> PACKAGE CLASS_NAME .)
+    GENSET          reduce using rule 5 (declaracao_package -> PACKAGE CLASS_NAME .)
+    RELATION_NAME   reduce using rule 5 (declaracao_package -> PACKAGE CLASS_NAME .)
+    $end            reduce using rule 5 (declaracao_package -> PACKAGE CLASS_NAME .)
+
+
+state 11
+
+    (4) import_decl -> IMPORT CLASS_NAME .
+
+    PACKAGE         reduce using rule 4 (import_decl -> IMPORT CLASS_NAME .)
+    IMPORT          reduce using rule 4 (import_decl -> IMPORT CLASS_NAME .)
+
+
+state 12
+
+    (6) declaracoes_pos_package -> declaracoes_pos_package declaracao_restante .
+
+    KIND            reduce using rule 6 (declaracoes_pos_package -> declaracoes_pos_package declaracao_restante .)
+    GENSET          reduce using rule 6 (declaracoes_pos_package -> declaracoes_pos_package declaracao_restante .)
+    RELATION_NAME   reduce using rule 6 (declaracoes_pos_package -> declaracoes_pos_package declaracao_restante .)
+    $end            reduce using rule 6 (declaracoes_pos_package -> declaracoes_pos_package declaracao_restante .)
+
+
+state 13
+
+    (8) declaracao_restante -> tipo_simples . CLASS_NAME
+
+    CLASS_NAME      shift and go to state 19
+
+
+state 14
+
+    (9) declaracao_restante -> declaracao_genset .
+
+    KIND            reduce using rule 9 (declaracao_restante -> declaracao_genset .)
+    GENSET          reduce using rule 9 (declaracao_restante -> declaracao_genset .)
+    RELATION_NAME   reduce using rule 9 (declaracao_restante -> declaracao_genset .)
+    $end            reduce using rule 9 (declaracao_restante -> declaracao_genset .)
+
+
+state 15
+
+    (10) declaracao_restante -> declaracao_relacao .
+
+    KIND            reduce using rule 10 (declaracao_restante -> declaracao_relacao .)
+    GENSET          reduce using rule 10 (declaracao_restante -> declaracao_relacao .)
+    RELATION_NAME   reduce using rule 10 (declaracao_restante -> declaracao_relacao .)
+    $end            reduce using rule 10 (declaracao_restante -> declaracao_relacao .)
+
+
+state 16
+
+    (11) tipo_simples -> KIND .
+
+    CLASS_NAME      reduce using rule 11 (tipo_simples -> KIND .)
+
+
+state 17
+
+    (12) declaracao_genset -> GENSET . CLASS_NAME
+
+    CLASS_NAME      shift and go to state 20
+
+
+state 18
+
+    (13) declaracao_relacao -> RELATION_NAME .
+
+    KIND            reduce using rule 13 (declaracao_relacao -> RELATION_NAME .)
+    GENSET          reduce using rule 13 (declaracao_relacao -> RELATION_NAME .)
+    RELATION_NAME   reduce using rule 13 (declaracao_relacao -> RELATION_NAME .)
+    $end            reduce using rule 13 (declaracao_relacao -> RELATION_NAME .)
+
+
+state 19
+
+    (8) declaracao_restante -> tipo_simples CLASS_NAME .
+
+    KIND            reduce using rule 8 (declaracao_restante -> tipo_simples CLASS_NAME .)
+    GENSET          reduce using rule 8 (declaracao_restante -> tipo_simples CLASS_NAME .)
+    RELATION_NAME   reduce using rule 8 (declaracao_restante -> tipo_simples CLASS_NAME .)
+    $end            reduce using rule 8 (declaracao_restante -> tipo_simples CLASS_NAME .)
+
+
+state 20
+
+    (12) declaracao_genset -> GENSET CLASS_NAME .
+
+    KIND            reduce using rule 12 (declaracao_genset -> GENSET CLASS_NAME .)
+    GENSET          reduce using rule 12 (declaracao_genset -> GENSET CLASS_NAME .)
+    RELATION_NAME   reduce using rule 12 (declaracao_genset -> GENSET CLASS_NAME .)
+    $end            reduce using rule 12 (declaracao_genset -> GENSET CLASS_NAME .)
+
