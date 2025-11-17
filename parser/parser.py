@@ -107,13 +107,66 @@ def p_lista_nomes_classe(p):
     else:
         p[0] = [p[1]]
 
-def p_estereotipo_classe(p):
-    """estereotipo_classe : EVENT | SITUATION | PROCESS | CATEGORY | MIXIN
-                           | PHASEMIXIN | ROLEMIXIN | HISTORICALROLEMIXIN
-                           | KIND | COLLECTIVE | QUANTITY | QUALITY | MODE
-                           | INTRISICMODE | EXTRINSICMODE | SUBKIND | PHASE
-                           | ROLE | HISTORICALROLE"""
+# --- (CORREÇÃO 1: ESTEREÓTIPOS DE CLASSE) ---
+# Em vez de 1 função com '|', 18 funções pequenas:
+def p_estereotipo_classe_1(p):
+    """estereotipo_classe : EVENT"""
     p[0] = p[1]
+def p_estereotipo_classe_2(p):
+    """estereotipo_classe : SITUATION"""
+    p[0] = p[1]
+def p_estereotipo_classe_3(p):
+    """estereotipo_classe : PROCESS"""
+    p[0] = p[1]
+def p_estereotipo_classe_4(p):
+    """estereotipo_classe : CATEGORY"""
+    p[0] = p[1]
+def p_estereotipo_classe_5(p):
+    """estereotipo_classe : MIXIN"""
+    p[0] = p[1]
+def p_estereotipo_classe_6(p):
+    """estereotipo_classe : PHASEMIXIN"""
+    p[0] = p[1]
+def p_estereotipo_classe_7(p):
+    """estereotipo_classe : ROLEMIXIN"""
+    p[0] = p[1]
+def p_estereotipo_classe_8(p):
+    """estereotipo_classe : HISTORICALROLEMIXIN"""
+    p[0] = p[1]
+def p_estereotipo_classe_9(p):
+    """estereotipo_classe : KIND"""
+    p[0] = p[1]
+def p_estereotipo_classe_10(p):
+    """estereotipo_classe : COLLECTIVE"""
+    p[0] = p[1]
+def p_estereotipo_classe_11(p):
+    """estereotipo_classe : QUANTITY"""
+    p[0] = p[1]
+def p_estereotipo_classe_12(p):
+    """estereotipo_classe : QUALITY"""
+    p[0] = p[1]
+def p_estereotipo_classe_13(p):
+    """estereotipo_classe : MODE"""
+    p[0] = p[1]
+def p_estereotipo_classe_14(p):
+    """estereotipo_classe : INTRISICMODE"""
+    p[0] = p[1]
+def p_estereotipo_classe_15(p):
+    """estereotipo_classe : EXTRINSICMODE"""
+    p[0] = p[1]
+def p_estereotipo_classe_16(p):
+    """estereotipo_classe : SUBKIND"""
+    p[0] = p[1]
+def p_estereotipo_classe_17(p):
+    """estereotipo_classe : PHASE"""
+    p[0] = p[1]
+def p_estereotipo_classe_18(p):
+    """estereotipo_classe : ROLE"""
+    p[0] = p[1]
+def p_estereotipo_classe_19(p):
+    """estereotipo_classe : HISTORICALROLE"""
+    p[0] = p[1]
+
 
 # ----------------------------------
 # F. DECLARAÇÃO DE ENUM (CONSTRUTO 4)
@@ -169,10 +222,30 @@ def p_tipo_atributo(p):
                      | CLASS_NAME"""
     p[0] = p[1]
 
-def p_tipo_primitivo(p):
-    """tipo_primitivo : NUMBER_TYPE | STRING_TYPE | BOOLEAN_TYPE
-                      | DATE_TYPE | TIME_TYPE | DATETIME_TYPE | INT_TYPE"""
+# --- (CORREÇÃO 2: TIPOS PRIMITIVOS) ---
+# Em vez de 1 função com '|', 7 funções pequenas:
+def p_tipo_primitivo_1(p):
+    """tipo_primitivo : NUMBER_TYPE"""
     p[0] = p[1]
+def p_tipo_primitivo_2(p):
+    """tipo_primitivo : STRING_TYPE"""
+    p[0] = p[1]
+def p_tipo_primitivo_3(p):
+    """tipo_primitivo : BOOLEAN_TYPE"""
+    p[0] = p[1]
+def p_tipo_primitivo_4(p):
+    """tipo_primitivo : DATE_TYPE"""
+    p[0] = p[1]
+def p_tipo_primitivo_5(p):
+    """tipo_primitivo : TIME_TYPE"""
+    p[0] = p[1]
+def p_tipo_primitivo_6(p):
+    """tipo_primitivo : DATETIME_TYPE"""
+    p[0] = p[1]
+def p_tipo_primitivo_7(p):
+    """tipo_primitivo : INT_TYPE"""
+    p[0] = p[1]
+
 
 # ----------------------------------
 # H. DECLARAÇÃO DE GENSET (CONSTRUTO 5)
@@ -280,16 +353,84 @@ def p_cardinalidade_valor(p):
     else:
         p[0] = f"{p[1]}..{p[3]}"
 
-def p_estereotipo_relacao(p):
-    """estereotipo_relacao : MATERIAL | DERIVATION | COMPARATIVE | MEDIATION
-                           | CHARACTERIZATION | EXTERNALDEPENDENCE | COMPONENTOF
-                           | MEMBEROF | SUBCOLLECTIONOF | SUBQUALITYOF
-                           | INSTANTIATION | TERMINATION | PARTICIPATIONAL
-                           | PARTICIPATION | HISTORICALDEPENDENCE | CREATION
-                           | MANIFESTATION | BRINGSABOUT | TRIGGERS | COMPOSITION
-                           | AGGREGATION | INHERENCE | VALUE | FORMAL | CONSTITUTION"""
-    p[0] = p[1]
 
+# --- (CORREÇÃO 3: ESTEREÓTIPOS DE RELAÇÃO) ---
+# Em vez de 1 função com '|', 25 funções pequenas:
+def p_estereotipo_relacao_1(p):
+    """estereotipo_relacao : MATERIAL"""
+    p[0] = p[1]
+def p_estereotipo_relacao_2(p):
+    """estereotipo_relacao : DERIVATION"""
+    p[0] = p[1]
+def p_estereotipo_relacao_3(p):
+    """estereotipo_relacao : COMPARATIVE"""
+    p[0] = p[1]
+def p_estereotipo_relacao_4(p):
+    """estereotipo_relacao : MEDIATION"""
+    p[0] = p[1]
+def p_estereotipo_relacao_5(p):
+    """estereotipo_relacao : CHARACTERIZATION"""
+    p[0] = p[1]
+def p_estereotipo_relacao_6(p):
+    """estereotipo_relacao : EXTERNALDEPENDENCE"""
+    p[0] = p[1]
+def p_estereotipo_relacao_7(p):
+    """estereotipo_relacao : COMPONENTOF"""
+    p[0] = p[1]
+def p_estereotipo_relacao_8(p):
+    """estereotipo_relacao : MEMBEROF"""
+    p[0] = p[1]
+def p_estereotipo_relacao_9(p):
+    """estereotipo_relacao : SUBCOLLECTIONOF"""
+    p[0] = p[1]
+def p_estereotipo_relacao_10(p):
+    """estereotipo_relacao : SUBQUALITYOF"""
+    p[0] = p[1]
+def p_estereotipo_relacao_11(p):
+    """estereotipo_relacao : INSTANTIATION"""
+    p[0] = p[1]
+def p_estereotipo_relacao_12(p):
+    """estereotipo_relacao : TERMINATION"""
+    p[0] = p[1]
+def p_estereotipo_relacao_13(p):
+    """estereotipo_relacao : PARTICIPATIONAL"""
+    p[0] = p[1]
+def p_estereotipo_relacao_14(p):
+    """estereotipo_relacao : PARTICIPATION"""
+    p[0] = p[1]
+def p_estereotipo_relacao_15(p):
+    """estereotipo_relacao : HISTORICALDEPENDENCE"""
+    p[0] = p[1]
+def p_estereotipo_relacao_16(p):
+    """estereotipo_relacao : CREATION"""
+    p[0] = p[1]
+def p_estereotipo_relacao_17(p):
+    """estereotipo_relacao : MANIFESTATION"""
+    p[0] = p[1]
+def p_estereotipo_relacao_18(p):
+    """estereotipo_relacao : BRINGSABOUT"""
+    p[0] = p[1]
+def p_estereotipo_relacao_19(p):
+    """estereotipo_relacao : TRIGGERS"""
+    p[0] = p[1]
+def p_estereotipo_relacao_20(p):
+    """estereotipo_relacao : COMPOSITION"""
+    p[0] = p[1]
+def p_estereotipo_relacao_21(p):
+    """estereotipo_relacao : AGGREGATION"""
+    p[0] = p[1]
+def p_estereotipo_relacao_22(p):
+    """estereotipo_relacao : INHERENCE"""
+    p[0] = p[1]
+def p_estereotipo_relacao_23(p):
+    """estereotipo_relacao : VALUE"""
+    p[0] = p[1]
+def p_estereotipo_relacao_24(p):
+    """estereotipo_relacao : FORMAL"""
+    p[0] = p[1]
+def p_estereotipo_relacao_25(p):
+    """estereotipo_relacao : CONSTITUTION"""
+    p[0] = p[1]
 
 # =============================================================================
 # 3. FUNÇÃO VAZIA E TRATAMENTO DE ERROS
@@ -306,7 +447,6 @@ def p_error(p):
     global has_error
     has_error = True
     if p:
-        # (NOVO) Esta é a linha corrigida
         print(
             f"\n[ERRO SINTÁTICO] Token inesperado: {p.type} ('{p.value}') na linha {p.lineno}"
         )
