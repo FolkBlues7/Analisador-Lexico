@@ -54,11 +54,11 @@ def p_declaracao(p):
                    | declaracao_enum
                    | declaracao_datatype
                    | declaracao_genset
-                   | declaracao_relacao_externa""" # <-- (NOVO) Adicionado relação externa
+                   | declaracao_relacao_externa"""
     p[0] = p[1]
 
 # ----------------------------------
-# E. DECLARAÇÃO DE CLASSE (CONSTRUTO 2) - (MODIFICADO)
+# E. DECLARAÇÃO DE CLASSE (CONSTRUTO 2)
 # ----------------------------------
 def p_declaracao_classe(p):
     """declaracao_classe : estereotipo_classe CLASS_NAME classe_specialization classe_body"""
@@ -67,7 +67,7 @@ def p_declaracao_classe(p):
         "stereotype": p[1],
         "name": p[2],
         "specializes": p[3], 
-        "body": p[4] # <-- p[4] agora pode conter atributos/relações
+        "body": p[4]
     }
 
 def p_classe_specialization(p):
@@ -78,16 +78,14 @@ def p_classe_specialization(p):
     else:
         p[0] = [] 
 
-# (MODIFICADO) Corpo da classe agora aceita uma lista de membros
 def p_classe_body(p):
     """classe_body : LBRACE lista_membros_classe RBRACE
                    | empty"""
     if len(p) == 4:
-        p[0] = {"type": "ClassBody", "members": p[2]} # p[2] é a lista de membros
+        p[0] = {"type": "ClassBody", "members": p[2]}
     else:
         p[0] = None 
 
-# (NOVO) Lista de membros (atributos ou relações internas)
 def p_lista_membros_classe(p):
     """lista_membros_classe : membro_classe lista_membros_classe
                             | empty"""
@@ -96,7 +94,6 @@ def p_lista_membros_classe(p):
     else:
         p[0] = []
 
-# (NOVO) Hub para um membro de classe
 def p_membro_classe(p):
     """membro_classe : atributo_datatype
                      | declaracao_relacao_interna"""
@@ -152,7 +149,6 @@ def p_lista_atributos_datatype(p):
     """lista_atributos_datatype : atributo_datatype COMMA lista_atributos_datatype
                                 | atributo_datatype
                                 | empty"""
-    # Corrigido para lidar com 'empty'
     if len(p) == 4:
         p[0] = [p[1]] + p[3]
     elif len(p) == 2 and p[1] is not None:
@@ -225,16 +221,15 @@ def p_genset_form_block(p):
     }
 
 # ----------------------------------
-# I. (NOVO) DECLARAÇÃO DE RELAÇÃO (CONSTRUTO 6)
+# I. DECLARAÇÃO DE RELAÇÃO (CONSTRUTO 6)
 # ----------------------------------
 
 # 1. Forma Externa (relator/relation)
 def p_declaracao_relacao_externa(p):
     """declaracao_relacao_externa : tipo_relacao_externa CLASS_NAME classe_specialization LBRACE lista_membros_classe RBRACE"""
-    # Reutilizamos 'lista_membros_classe' aqui!
     p[0] = {
         "type": "RelationDeclaration",
-        "relation_type": p[1], # 'relator' ou 'relation'
+        "relation_type": p[1],
         "name": p[2],
         "specializes": p[3],
         "body": {"type": "ClassBody", "members": p[5]}
@@ -250,9 +245,9 @@ def p_declaracao_relacao_interna(p):
     """declaracao_relacao_interna : estereotipo_relacao_opcional DOUBLE_HYPHEN RELATION_NAME DOUBLE_HYPHEN cardinalidade_opcional CLASS_NAME"""
     p[0] = {
         "type": "RelationPole",
-        "stereotype": p[1], # Pode ser None
+        "stereotype": p[1],
         "name": p[3],
-        "cardinality": p[5], # Pode ser None
+        "cardinality": p[5],
         "target_class": p[6]
     }
 
@@ -271,19 +266,18 @@ def p_cardinalidade_opcional(p):
     if len(p) == 4:
         p[0] = p[2]
     else:
-        p[0] = None # Ou um valor padrão, ex: '1..1'
+        p[0] = None
 
 def p_cardinalidade_valor(p):
     """cardinalidade_valor : NUMBER
                            | NUMBER DOTDOT NUMBER
                            | NUMBER DOTDOT ASTERISK
                            | ASTERISK"""
-    # Esta regra apenas captura a sintaxe, não a processa.
     if len(p) == 2:
-        p[0] = str(p[1]) # ex: '1' ou '*'
+        p[0] = str(p[1])
     elif len(p) == 4:
-        p[0] = f"{p[1]}..{p[3]}" # ex: '1..5' ou '0..*'
-    else: # p[1] DOTDOT p[3]
+        p[0] = f"{p[1]}..{p[3]}"
+    else:
         p[0] = f"{p[1]}..{p[3]}"
 
 def p_estereotipo_relacao(p):
@@ -312,8 +306,9 @@ def p_error(p):
     global has_error
     has_error = True
     if p:
+        # (NOVO) Esta é a linha corrigida
         print(
-            f"\n[ERRO SINTÁTICO] Token inesperado: {p.type} ('{p{".value"}') na linha {p.lineno}"
+            f"\n[ERRO SINTÁTICO] Token inesperado: {p.type} ('{p.value}') na linha {p.lineno}"
         )
     else:
         print(
