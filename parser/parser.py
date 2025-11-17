@@ -22,11 +22,6 @@ except ImportError:
 # ----------------------------------
 def p_programa(p):
     """programa : declaracao_package declaracoes_pos_package"""
-    
-    # p[1] é a ÚNICA declaração de Package
-    # p[2] são as outras declarações (Classes, Relações, etc.)
-
-    # Constrói o nó raiz da AST
     p[0] = {
         "type": "OntologyModel",
         "package": p[1],
@@ -47,24 +42,19 @@ def p_declaracao_package(p):
 def p_declaracoes_pos_package(p):
     """declaracoes_pos_package : declaracao declaracoes_pos_package
                                | empty"""
-    # Esta é uma regra de lista recursiva.
-    # p[1] é a declaração atual (ex: uma classe)
-    # p[2] é a lista do resto das declarações
     if len(p) == 3:
-        p[0] = [p[1]] + p[2]  # Adiciona a declaração atual à lista
+        p[0] = [p[1]] + p[2]
     else:
-        p[0] = [] # Caso 'empty' (lista vazia)
+        p[0] = []
 
 # ----------------------------------
 # D. HUB DE DECLARAÇÕES
 # ----------------------------------
 def p_declaracao(p):
     """declaracao : declaracao_classe
-                   | declaracao_enum""" # <-- (NOVO) Adicionado enum ao hub
-    # Este é o "hub".
-    # No futuro, adicionaremos:
-    #            | declaracao_genset
-    #            | ...
+                   | declaracao_enum
+                   | declaracao_datatype
+                   | declaracao_genset""" # <-- (NOVO) Adicionado genset ao hub
     p[0] = p[1]
 
 # ----------------------------------
@@ -127,28 +117,125 @@ def p_estereotipo_classe(p):
     p[0] = p[1]
 
 # ----------------------------------
-# F. (NOVO) DECLARAÇÃO DE ENUM (CONSTRUTO 4)
+# F. DECLARAÇÃO DE ENUM (CONSTRUTO 4)
 # ----------------------------------
-
 def p_declaracao_enum(p):
     """declaracao_enum : ENUM CLASS_NAME LBRACE lista_individuos RBRACE"""
     p[0] = {
         "type": "EnumDeclaration",
         "name": p[2],
-        "members": p[4] # p[4] vem da 'lista_individuos'
+        "members": p[4]
     }
 
-# Regra auxiliar para a lista de membros do enum
-# Nota: Usamos CLASS_NAME aqui, pois o lexer os classifica assim.
 def p_lista_individuos(p):
     """lista_individuos : CLASS_NAME COMMA lista_individuos
                         | CLASS_NAME"""
     if len(p) == 4:
-        # Ex: Blue, Green...
         p[0] = [p[1]] + p[3]
     else:
-        # Ex: Blue (último ou único da lista)
         p[0] = [p[1]]
+
+# ----------------------------------
+# G. DECLARAÇÃO DE DATATYPE (CONSTRUTO 3)
+# ----------------------------------
+def p_declaracao_datatype(p):
+    """declaracao_datatype : DATATYPE CLASS_NAME LBRACE lista_atributos_datatype RBRACE"""
+    p[0] = {
+        "type": "DataTypeDeclaration",
+        "name": p[2],
+        "attributes": p[4]
+    }
+
+def p_lista_atributos_datatype(p):
+    """lista_atributos_datatype : atributo_datatype COMMA lista_atributos_datatype
+                                | atributo_datatype
+                                | empty"""
+    if len(p) == 4:
+        p[0] = [p[1]] + p[3]
+    elif len(p) == 2 and p[1] is not None: # p[1] pode ser None se a regra for 'empty'
+        p[0] = [p[1]]
+    else:
+        p[0] = []
+
+def p_atributo_datatype(p):
+    """atributo_datatype : RELATION_NAME COLON tipo_atributo"""
+    p[0] = {
+        "type": "Attribute",
+        "name": p[1],
+        "datatype": p[3]
+    }
+
+def p_tipo_atributo(p):
+    """tipo_atributo : tipo_primitivo
+                     | CLASS_NAME"""
+    p[0] = p[1]
+
+def p_tipo_primitivo(p):
+    """tipo_primitivo : NUMBER_TYPE
+                      | STRING_TYPE
+                      | BOOLEAN_TYPE
+                      | DATE_TYPE
+                      | TIME_TYPE
+                      | DATETIME_TYPE
+                      | INT_TYPE"""
+    p[0] = p[1]
+
+# ----------------------------------
+# H. (NOVO) DECLARAÇÃO DE GENSET (CONSTRUTO 5)
+# ----------------------------------
+
+# Regra principal
+def p_declaracao_genset(p):
+    """declaracao_genset : genset_modifiers GENSET CLASS_NAME genset_form"""
+    # p[1] = lista de modificadores (ex: ['disjoint', 'complete'])
+    # p[3] = nome do genset (ex: 'AgePhase')
+    # p[4] = dicionário com {general, specifics, form}
+    p[0] = {
+        "type": "GeneralizationSet",
+        "name": p[3],
+        "modifiers": p[1],
+        **p[4] # Desempacota o dicionário de p[4]
+    }
+
+# Regra para os modificadores opcionais
+def p_genset_modifiers(p):
+    """genset_modifiers : genset_modifier genset_modifiers
+                        | empty"""
+    if len(p) == 3:
+        p[0] = [p[1]] + p[2]
+    else:
+        p[0] = []
+
+# Regra para um único modificador
+def p_genset_modifier(p):
+    """genset_modifier : DISJOINT
+                       | COMPLETE"""
+    p[0] = p[1] # Retorna a string 'disjoint' or 'complete'
+
+# Regra para escolher entre a forma 'where' ou 'block'
+def p_genset_form(p):
+    """genset_form : genset_form_where
+                   | genset_form_block"""
+    p[0] = p[1] # Apenas repassa o dicionário
+
+# Regra para a forma 'where'
+def p_genset_form_where(p):
+    """genset_form_where : WHERE lista_nomes_classe SPECIALIZES CLASS_NAME"""
+    # Reutilizamos a 'lista_nomes_classe' que já tínhamos!
+    p[0] = {
+        "form": "where",
+        "general": p[4],
+        "specifics": p[2]
+    }
+
+# Regra para a forma 'block'
+def p_genset_form_block(p):
+    """genset_form_block : LBRACE GENERAL CLASS_NAME SPECIFICS lista_nomes_classe RBRACE"""
+    p[0] = {
+        "form": "block",
+        "general": p[3],
+        "specifics": p[5]
+    }
 
 
 # =============================================================================
