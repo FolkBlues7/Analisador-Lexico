@@ -1,20 +1,17 @@
-# Importa o objeto lexer do módulo lexer
-from lexer.lexer import lexer
-# Importa 'os' para manipulação de caminhos de arquivo
 import os
-# Importa 'sys' para funções de sistema (não usado diretamente, mas boa prática)
 import sys
-# Importa a classe Counter para facilitar a contagem dos tokens
+import json # <-- Importante para formatar a AST
 from collections import Counter
-# Importa o módulo JSON para formatar a AST
-import json 
 
-# Importa o analisador sintático (CERTIFIQUE-SE DE QUE ESTE CAMINHO ESTÁ CORRETO)
-# Assumindo que este import existe para as funções auxiliares
+# --- Importações dos nossos módulos ---
+
+# (REQUISITO 2) Importa o lexer, necessário para a Análise Léxica (Fase 1)
+from lexer.lexer import lexer
+# Importa a função principal do parser (Fase 2)
 from parser.parser import parse_tonto_code 
 
 # =============================================================================
-# EXEMPLOS DE ENTRADA (MANTIDOS)
+# EXEMPLOS DE ENTRADA (REQUISITO 1: Mantidos)
 # =============================================================================
 
 TEST_EXAMPLES = {
@@ -329,17 +326,19 @@ disjoint complete genset PhasesOfAPatient{
 }
 
 # =============================================================================
-# FUNÇÕES DE ANÁLISE (AUXILIARES - MANTIDAS)
+# FUNÇÕES DE ANÁLISE
 # =============================================================================
 
-def executar_analise_lexica(codigo_para_analise, nome_do_teste):
-    """Executa a análise léxica."""
-    print("\n" + "#" * 50)
-    print(f" EXECUTANDO ANÁLISE LÉXICA: {nome_do_teste}".center(50))
-    print("#" * 50)
+# (REQUISITO 2) Esta é a função da FASE 1, 100% funcional.
+def run_analysis_lexica(codigo_para_analise, nome_do_teste):
+    """
+    Executa a ANÁLISE LÉXICA (Fase 1)
+    Imprime a lista de tokens e a tabela de síntese.
+    """
+    print(f"\n--- Iniciando Análise LÉXICA para: {nome_do_teste} ---")
     
     token_counts = Counter()
-    lexer.lineno = 1 
+    lexer.lineno = 1
     lexer.input(codigo_para_analise)
 
     print("\n=== VISÃO ANALÍTICA (LISTA DE TOKENS) ===")
@@ -347,149 +346,142 @@ def executar_analise_lexica(codigo_para_analise, nome_do_teste):
         token = lexer.token()
         if not token:
             break
-        print(f"  [Tipo: {token.type:<20} Lexema: '{token.value}' Linha: {token.lineno}]")
+        print(f"  [Tipo: {token.type:<20} Lexema: '{token.value}' Linha: {token.lineno}]")
         token_counts[token.type] += 1
         
     print("\n" + "="*50)
     print("=== TABELA DE SÍNTESE (CONTAGEM DE TOKENS) ===".center(50))
     print("="*50)
-
     if not token_counts:
         print("Nenhum token foi encontrado.")
     else:
         for token_type, count in sorted(token_counts.items()):
-            print(f"  {token_type:<25}: {count}")
+            print(f"  {token_type:<25}: {count}")
+    print("\n--- Análise Léxica Concluída ---")
 
-def executar_analise_sintatica(codigo_para_analise, nome_do_teste):
-    """Executa a análise sintática do código usando o parser PLY."""
-    
-    print("\n" + "#" * 50)
-    print(f" EXECUTANDO ANÁLISE SINTÁTICA: {nome_do_teste}".center(50))
-    print("#" * 50)
-    
-    try:
-        # Chama a função principal de parse do seu parser.py
-        resultado_ast = parse_tonto_code(codigo_para_analise)
+
+def run_analysis_sintatica(codigo_para_analise, nome_do_teste):
+    """
+    Executa a ANÁLISE SINTÁTICA (Fase 2)
+    Chama o parser e imprime a Árvore Sintática Abstrata (AST).
+    """
+    print(f"\n--- Iniciando Análise SINTÁTICA para: {nome_do_teste} ---")
+
+    # Chama a função principal do nosso parser.py
+    ast_result = parse_tonto_code(codigo_para_analise)
+
+    if ast_result:
+        print("\n[SUCESSO] A sintaxe do código está CORRETA.")
+        print("\n" + "="*50)
+        print("=== ÁRVORE SINTÁTICA ABSTRATA (AST) GERADA ===".center(50))
+        print("="*50)
         
-        if resultado_ast is not None:
-            print("\n[SUCESSO] Código aceito pela gramática (até o momento)!")
-            print("\n=== ÁRVORE DE SINTAXE ABSTRATA (AST) ===")
-            print(json.dumps(resultado_ast, indent=4, ensure_ascii=False)) 
-        else:
-            print("\n[FALHA SINTÁTICA] O parser rejeitou o código. Verifique as mensagens de erro.")
-            
-    except Exception as e:
-        print(f"\n[ERRO INESPERADO DO PARSER] Falha na execução: {e}")
+        # Imprime a árvore formatada como JSON
+        print(json.dumps(ast_result, indent=2))
+        
+        print("\n--- Análise Sintática Concluída ---")
+    else:
+        print("\n[FALHA] A análise sintática falhou.")
+        print("Verifique os [ERRO SINTÁTICO] reportados acima.")
+        print("\n--- Análise Sintática Concluída com Erros ---")
+
+
+def run_analysis_semantica(codigo_para_analise, nome_do_teste):
+    """
+    Placeholder para a ANÁLISE SEMÂNTICA (Fase 3)
+    """
+    print(f"\n--- Iniciando Análise SEMÂNTICA para: {nome_do_teste} ---")
+    print("\n[PENDENTE] A Análise Semântica (Fase 3) ainda não foi implementada.")
+    print("\n--- Análise Semântica Concluída (Placeholder) ---")
+
 
 # =============================================================================
-# FUNÇÃO PRINCIPAL (FLUXO INVERTIDO E CORRIGIDO)
+# LOOP PRINCIPAL (MAIN)
 # =============================================================================
 
 def main():
+    """ Loop principal que exibe o menu e processa a entrada do usuário. """
+    
+    analysis_functions = {
+        '1': ('Análise Léxica (Fase 1)', run_analysis_lexica), # <-- (REQUISITO 2)
+        '2': ('Análise Sintática (Fase 2)', run_analysis_sintatica),
+        '3': ('Análise Semântica (Fase 3)', run_analysis_semantica),
+    }
+
     while True:
-        # ====================================================
-        # 1. ESCOLHA DO TIPO DE ANÁLISE (PRIMEIRO PASSO)
-        # ====================================================
-        print("\n" + "="*50)
-        print(" 1. SELECIONE O TIPO DE ANÁLISE ".center(50))
-        print("="*50)
-        print(" 1. Análise Léxica")
-        print(" 2. Análise Sintática")
-        print(" 3. Análise Semântica (Em desenvolvimento)")
-        print(" Q. Sair")
-        print("-" * 50)
+        # 1. MENU: SELEÇÃO DO TIPO DE ANÁLISE
+        print("\n" + "="*60)
+        print("  ANALISADOR DE LINGUAGEM TONTO".center(60))
+        print("="*60)
+        print("Selecione o TIPO de análise que deseja executar:")
+        for key, (name, _) in analysis_functions.items():
+            print(f"  {key}. {name}")
+        print("  Q. Sair")
+        
+        tipo_escolha = input("Digite sua escolha: ").strip().upper()
 
-        tipo_analise = input("Digite sua escolha: ").strip().upper()
-
-        if tipo_analise == 'Q':
-            print("Encerrando o analisador. Até logo!")
+        if tipo_escolha == 'Q':
+            print("Saindo...")
             break
-
-        if tipo_analise not in ['1', '2', '3']:
+        
+        if tipo_escolha not in analysis_functions:
             print("Opção inválida. Tente novamente.")
             continue
             
-        # Variável para armazenar a função a ser executada
-        funcao_analise = None
+        selected_analysis_name, funcao_analise = analysis_functions[tipo_escolha]
         
-        if tipo_analise == '1':
-            funcao_analise = executar_analise_lexica
-        elif tipo_analise == '2':
-            funcao_analise = executar_analise_sintatica
-        elif tipo_analise == '3':
-            print("\n[INFO] Análise Semântica selecionada. Esta funcionalidade está em desenvolvimento e será tratada como placeholder.")
-            # Definir uma função placeholder para Semântica se necessário, ou prosseguir
-
-        # ====================================================
-        # 2. ESCOLHA DO CÓDIGO FONTE (SEGUNDO PASSO)
-        # ====================================================
-
+        # 2. MENU: SELEÇÃO DE EXEMPLO OU ARQUIVO
         while True:
-            print("\n" + "="*50)
-            print(f" 2. SELECIONE O CÓDIGO FONTE para '{tipo_analise}'".center(50))
-            print("="*50)
+            print("\n" + "-"*60)
+            print(f"Executando: {selected_analysis_name}")
+            print("Selecione uma opção para analisar:")
             
-            # Lista as opções de teste
+            # (REQUISITO 1) Exemplos mantidos
             for key, example in TEST_EXAMPLES.items():
-                print(f" {key}. {example['name']}")
-                
-            print(" 5. Testar Arquivo Externo (.tonto)")
-            print(" B. Voltar ao menu de Análise")
-            print("-" * 50)
-            
-            escolha_codigo = input("Digite o número do teste (ou B para Voltar): ").strip().upper()
+                print(f"  {key}. {example['name']}")
+            print("  6. Analisar um arquivo externo (.tonto)")
+            print("  V. Voltar ao menu anterior")
 
-            if escolha_codigo == 'B':
-                break # Volta ao menu principal (Seleção de Tipo de Análise)
-            
+            exemplo_escolha = input("Digite sua escolha: ").strip().upper()
+
+            if exemplo_escolha == 'V':
+                break # Volta para o menu de tipo de análise
+
             codigo_para_analise = ""
             nome_do_teste = ""
 
-            # A. CARREGAR O CÓDIGO FONTE
-            if escolha_codigo in TEST_EXAMPLES:
-                exemplo_selecionado = TEST_EXAMPLES[escolha_codigo]
-                codigo_para_analise = exemplo_selecionado['code']
-                nome_do_teste = exemplo_selecionado['name']
-                
-            elif escolha_codigo == '5': 
-                print("\n--- INSTRUÇÕES PARA ARQUIVO EXTERNO ---")
-                print("1. Coloque o arquivo .tonto em um local acessível.")
-                print("2. Digite o caminho completo do arquivo.")
-                print("---------------------------------------")
-                file_path = input("Digite o caminho do arquivo .tonto: ").strip()
-                
+            if exemplo_escolha in TEST_EXAMPLES:
+                codigo_para_analise = TEST_EXAMPLES[exemplo_escolha]['code']
+                nome_do_teste = TEST_EXAMPLES[exemplo_escolha]['name']
+            
+            elif exemplo_escolha == '6':
+                file_path = input("Digite o caminho completo para o arquivo .tonto: ").strip()
                 if not os.path.exists(file_path):
-                    print(f"\n[ERRO] Arquivo não encontrado no caminho: {file_path}")
-                    continue 
-                
+                    print(f"\n[ERRO] Arquivo não encontrado: {file_path}")
+                    continue
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         codigo_para_analise = f.read()
                     nome_do_teste = f"Arquivo Externo: {os.path.basename(file_path)}"
                 except Exception as e:
                     print(f"\n[ERRO] Não foi possível ler o arquivo: {e}")
-                    continue 
-                    
-            else: 
+                    continue
+            else:
                 print("Opção inválida. Tente novamente.")
-                continue 
-            
-            # ====================================================
-            # 3 & 4. EXECUTAR ANÁLISE
-            # ====================================================
-            
-            print("\n=== CÓDIGO FONTE CARREGADO ===")
-            print(codigo_para_analise)
-            print("---------------------------------")
+                continue
 
-            if funcao_analise:
-                funcao_analise(codigo_para_analise, nome_do_teste)
-            else: # Caso Semântica (3) tenha sido selecionada, e não haja função
-                print(f"\n[RESULTADO] Análise Semântica para '{nome_do_teste}' concluída (placeholder).")
+            # 3. EXECUTAR ANÁLISE
+            print("\n" + "#" * 60)
+            print("=== CÓDIGO FONTE CARREGADO ===".center(60))
+            print(codigo_para_analise)
+            print("#" * 60)
+
+            # Chama a função de análise selecionada (Léxica ou Sintática)
+            funcao_analise(codigo_para_analise, nome_do_teste)
 
             input("\nPressione ENTER para continuar...")
-            break # Volta ao menu principal (Seleção de Tipo de Análise)
+            break # Volta para o menu de seleção de exemplos
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
