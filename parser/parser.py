@@ -2,7 +2,7 @@ import ply.yacc as yacc
 import json
 
 # =============================================================================
-# 1. IMPORTAÇÃO DOS TOKNES E LEXER
+# 1. IMPORTAÇÃO DOS TOKENS E LEXER
 # =============================================================================
 try:
     # Ajuste o caminho de importação conforme a estrutura real do seu projeto
@@ -42,7 +42,7 @@ def p_declaracao_package(p):
 
 
 # ----------------------------------
-# C. (NOVO) LISTA DE DECLARAÇÕES PÓS-PACOTE
+# C. LISTA DE DECLARAÇÕES PÓS-PACOTE
 # ----------------------------------
 def p_declaracoes_pos_package(p):
     """declaracoes_pos_package : declaracao declaracoes_pos_package
@@ -56,59 +56,46 @@ def p_declaracoes_pos_package(p):
         p[0] = [] # Caso 'empty' (lista vazia)
 
 # ----------------------------------
-# D. (NOVO) HUB DE DECLARAÇÕES
+# D. HUB DE DECLARAÇÕES
 # ----------------------------------
 def p_declaracao(p):
-    """declaracao : declaracao_classe"""
-    # Este é o "hub". Por enquanto, ele só chama 'declaracao_classe'.
+    """declaracao : declaracao_classe
+                   | declaracao_enum""" # <-- (NOVO) Adicionado enum ao hub
+    # Este é o "hub".
     # No futuro, adicionaremos:
-    # declaracao : declaracao_classe
-    #            | declaracao_enum
     #            | declaracao_genset
     #            | ...
     p[0] = p[1]
 
 # ----------------------------------
-# E. (NOVO) DECLARAÇÃO DE CLASSE (CONSTRUTO 2)
+# E. DECLARAÇÃO DE CLASSE (CONSTRUTO 2)
 # ----------------------------------
-
-# Esta é a regra principal para uma classe.
-# Uma classe tem:
-# 1. Um estereótipo (kind, phase, role, etc.)
-# 2. Um nome (CLASS_NAME)
-# 3. Uma especialização (opcional)
-# 4. Um corpo (opcional)
 def p_declaracao_classe(p):
     """declaracao_classe : estereotipo_classe CLASS_NAME classe_specialization classe_body"""
     p[0] = {
         "type": "ClassDeclaration",
         "stereotype": p[1],
         "name": p[2],
-        "specializes": p[3], # p[3] vem da regra 'classe_specialization'
-        "body": p[4]         # p[4] vem da regra 'classe_body'
+        "specializes": p[3], 
+        "body": p[4]         
     }
 
-# Regra para a parte opcional de especialização
 def p_classe_specialization(p):
     """classe_specialization : SPECIALIZES lista_nomes_classe
                              | empty"""
     if len(p) == 3:
-        p[0] = p[2] # Retorna a lista de classes das quais ela especializa
+        p[0] = p[2] 
     else:
-        p[0] = [] # Retorna uma lista vazia se não houver 'specializes'
+        p[0] = [] 
 
-# Regra para a parte opcional do corpo
 def p_classe_body(p):
     """classe_body : LBRACE RBRACE
                    | empty"""
-    # NOTA: Por enquanto, o corpo está VAZIO.
-    # Em etapas futuras, colocaremos as declarações de atributos aqui.
     if len(p) == 3:
-        p[0] = {"type": "ClassBody", "attributes": []} # Um corpo {}
+        p[0] = {"type": "ClassBody", "attributes": []} 
     else:
-        p[0] = None # Nenhum corpo
+        p[0] = None 
 
-# Regra auxiliar para 'lista_nomes_classe' (ex: specializes Person, Customer)
 def p_lista_nomes_classe(p):
     """lista_nomes_classe : CLASS_NAME COMMA lista_nomes_classe
                           | CLASS_NAME"""
@@ -117,7 +104,6 @@ def p_lista_nomes_classe(p):
     else:
         p[0] = [p[1]]
 
-# Regra auxiliar para agrupar todos os estereótipos de classe válidos
 def p_estereotipo_classe(p):
     """estereotipo_classe : EVENT
                            | SITUATION
@@ -138,7 +124,31 @@ def p_estereotipo_classe(p):
                            | PHASE
                            | ROLE
                            | HISTORICALROLE"""
-    p[0] = p[1] # Retorna a própria string do token (ex: 'kind')
+    p[0] = p[1]
+
+# ----------------------------------
+# F. (NOVO) DECLARAÇÃO DE ENUM (CONSTRUTO 4)
+# ----------------------------------
+
+def p_declaracao_enum(p):
+    """declaracao_enum : ENUM CLASS_NAME LBRACE lista_individuos RBRACE"""
+    p[0] = {
+        "type": "EnumDeclaration",
+        "name": p[2],
+        "members": p[4] # p[4] vem da 'lista_individuos'
+    }
+
+# Regra auxiliar para a lista de membros do enum
+# Nota: Usamos CLASS_NAME aqui, pois o lexer os classifica assim.
+def p_lista_individuos(p):
+    """lista_individuos : CLASS_NAME COMMA lista_individuos
+                        | CLASS_NAME"""
+    if len(p) == 4:
+        # Ex: Blue, Green...
+        p[0] = [p[1]] + p[3]
+    else:
+        # Ex: Blue (último ou único da lista)
+        p[0] = [p[1]]
 
 
 # =============================================================================
@@ -159,7 +169,6 @@ def p_error(p):
         print(
             f"\n[ERRO SINTÁTICO] Token inesperado: {p.type} ('{p.value}') na linha {p.lineno}"
         )
-        # (Futuramente, podemos adicionar sugestões aqui)
     else:
         print(
             "\n[ERRO SINTÁTICO] Fim de arquivo inesperado (EOF). O código está incompleto."
