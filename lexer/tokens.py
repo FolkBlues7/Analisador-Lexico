@@ -55,6 +55,8 @@ tokens = [
     "DATATYPE",
     "OF",
     "ASSOCIATION_NAME",
+    "ENUM",
+    "RELATION",
     "GENSET",
     "DISJOINT",
     "COMPLETE",
@@ -92,6 +94,7 @@ tokens = [
     "DATE_TYPE",
     "TIME_TYPE",
     "DATETIME_TYPE",
+    "INT_TYPE",
     # Valores Literais:
     "NUMBER",
     "STRING",
@@ -165,6 +168,8 @@ reserved = {
     "datatype": "DATATYPE",
     "of": "OF",
     "association": "ASSOCIATION_NAME",  # Para a sintaxe 'association'
+    "enum": "ENUM",
+    "relation": "RELATION",
     # Palavras reservadas (Comandos de estrutura):
     "genset": "GENSET",
     "disjoint": "DISJOINT",
@@ -192,4 +197,5 @@ reserved = {
     "derived": "DERIVED",
     "subsets": "SUBSETS",
     "redefines": "REDEFINES",
+    "int": "INT_TYPE",
 }
