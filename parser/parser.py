@@ -5,7 +5,6 @@ import json
 # 1. IMPORTAÇÃO DOS TOKENS E LEXER
 # =============================================================================
 try:
-    # Ajuste o caminho de importação conforme a estrutura real do seu projeto
     from lexer.lexer import tokens, lexer
 except ImportError:
     print(
@@ -54,11 +53,12 @@ def p_declaracao(p):
     """declaracao : declaracao_classe
                    | declaracao_enum
                    | declaracao_datatype
-                   | declaracao_genset""" # <-- (NOVO) Adicionado genset ao hub
+                   | declaracao_genset
+                   | declaracao_relacao_externa""" # <-- (NOVO) Adicionado relação externa
     p[0] = p[1]
 
 # ----------------------------------
-# E. DECLARAÇÃO DE CLASSE (CONSTRUTO 2)
+# E. DECLARAÇÃO DE CLASSE (CONSTRUTO 2) - (MODIFICADO)
 # ----------------------------------
 def p_declaracao_classe(p):
     """declaracao_classe : estereotipo_classe CLASS_NAME classe_specialization classe_body"""
@@ -67,7 +67,7 @@ def p_declaracao_classe(p):
         "stereotype": p[1],
         "name": p[2],
         "specializes": p[3], 
-        "body": p[4]         
+        "body": p[4] # <-- p[4] agora pode conter atributos/relações
     }
 
 def p_classe_specialization(p):
@@ -78,13 +78,29 @@ def p_classe_specialization(p):
     else:
         p[0] = [] 
 
+# (MODIFICADO) Corpo da classe agora aceita uma lista de membros
 def p_classe_body(p):
-    """classe_body : LBRACE RBRACE
+    """classe_body : LBRACE lista_membros_classe RBRACE
                    | empty"""
-    if len(p) == 3:
-        p[0] = {"type": "ClassBody", "attributes": []} 
+    if len(p) == 4:
+        p[0] = {"type": "ClassBody", "members": p[2]} # p[2] é a lista de membros
     else:
         p[0] = None 
+
+# (NOVO) Lista de membros (atributos ou relações internas)
+def p_lista_membros_classe(p):
+    """lista_membros_classe : membro_classe lista_membros_classe
+                            | empty"""
+    if len(p) == 3:
+        p[0] = [p[1]] + p[2]
+    else:
+        p[0] = []
+
+# (NOVO) Hub para um membro de classe
+def p_membro_classe(p):
+    """membro_classe : atributo_datatype
+                     | declaracao_relacao_interna"""
+    p[0] = p[1]
 
 def p_lista_nomes_classe(p):
     """lista_nomes_classe : CLASS_NAME COMMA lista_nomes_classe
@@ -95,25 +111,11 @@ def p_lista_nomes_classe(p):
         p[0] = [p[1]]
 
 def p_estereotipo_classe(p):
-    """estereotipo_classe : EVENT
-                           | SITUATION
-                           | PROCESS
-                           | CATEGORY
-                           | MIXIN
-                           | PHASEMIXIN
-                           | ROLEMIXIN
-                           | HISTORICALROLEMIXIN
-                           | KIND
-                           | COLLECTIVE
-                           | QUANTITY
-                           | QUALITY
-                           | MODE
-                           | INTRISICMODE
-                           | EXTRINSICMODE
-                           | SUBKIND
-                           | PHASE
-                           | ROLE
-                           | HISTORICALROLE"""
+    """estereotipo_classe : EVENT | SITUATION | PROCESS | CATEGORY | MIXIN
+                           | PHASEMIXIN | ROLEMIXIN | HISTORICALROLEMIXIN
+                           | KIND | COLLECTIVE | QUANTITY | QUALITY | MODE
+                           | INTRISICMODE | EXTRINSICMODE | SUBKIND | PHASE
+                           | ROLE | HISTORICALROLE"""
     p[0] = p[1]
 
 # ----------------------------------
@@ -150,9 +152,10 @@ def p_lista_atributos_datatype(p):
     """lista_atributos_datatype : atributo_datatype COMMA lista_atributos_datatype
                                 | atributo_datatype
                                 | empty"""
+    # Corrigido para lidar com 'empty'
     if len(p) == 4:
         p[0] = [p[1]] + p[3]
-    elif len(p) == 2 and p[1] is not None: # p[1] pode ser None se a regra for 'empty'
+    elif len(p) == 2 and p[1] is not None:
         p[0] = [p[1]]
     else:
         p[0] = []
@@ -171,33 +174,22 @@ def p_tipo_atributo(p):
     p[0] = p[1]
 
 def p_tipo_primitivo(p):
-    """tipo_primitivo : NUMBER_TYPE
-                      | STRING_TYPE
-                      | BOOLEAN_TYPE
-                      | DATE_TYPE
-                      | TIME_TYPE
-                      | DATETIME_TYPE
-                      | INT_TYPE"""
+    """tipo_primitivo : NUMBER_TYPE | STRING_TYPE | BOOLEAN_TYPE
+                      | DATE_TYPE | TIME_TYPE | DATETIME_TYPE | INT_TYPE"""
     p[0] = p[1]
 
 # ----------------------------------
-# H. (NOVO) DECLARAÇÃO DE GENSET (CONSTRUTO 5)
+# H. DECLARAÇÃO DE GENSET (CONSTRUTO 5)
 # ----------------------------------
-
-# Regra principal
 def p_declaracao_genset(p):
     """declaracao_genset : genset_modifiers GENSET CLASS_NAME genset_form"""
-    # p[1] = lista de modificadores (ex: ['disjoint', 'complete'])
-    # p[3] = nome do genset (ex: 'AgePhase')
-    # p[4] = dicionário com {general, specifics, form}
     p[0] = {
         "type": "GeneralizationSet",
         "name": p[3],
         "modifiers": p[1],
-        **p[4] # Desempacota o dicionário de p[4]
+        **p[4] 
     }
 
-# Regra para os modificadores opcionais
 def p_genset_modifiers(p):
     """genset_modifiers : genset_modifier genset_modifiers
                         | empty"""
@@ -206,29 +198,24 @@ def p_genset_modifiers(p):
     else:
         p[0] = []
 
-# Regra para um único modificador
 def p_genset_modifier(p):
     """genset_modifier : DISJOINT
                        | COMPLETE"""
-    p[0] = p[1] # Retorna a string 'disjoint' or 'complete'
+    p[0] = p[1]
 
-# Regra para escolher entre a forma 'where' ou 'block'
 def p_genset_form(p):
     """genset_form : genset_form_where
                    | genset_form_block"""
-    p[0] = p[1] # Apenas repassa o dicionário
+    p[0] = p[1]
 
-# Regra para a forma 'where'
 def p_genset_form_where(p):
     """genset_form_where : WHERE lista_nomes_classe SPECIALIZES CLASS_NAME"""
-    # Reutilizamos a 'lista_nomes_classe' que já tínhamos!
     p[0] = {
         "form": "where",
         "general": p[4],
         "specifics": p[2]
     }
 
-# Regra para a forma 'block'
 def p_genset_form_block(p):
     """genset_form_block : LBRACE GENERAL CLASS_NAME SPECIFICS lista_nomes_classe RBRACE"""
     p[0] = {
@@ -236,6 +223,78 @@ def p_genset_form_block(p):
         "general": p[3],
         "specifics": p[5]
     }
+
+# ----------------------------------
+# I. (NOVO) DECLARAÇÃO DE RELAÇÃO (CONSTRUTO 6)
+# ----------------------------------
+
+# 1. Forma Externa (relator/relation)
+def p_declaracao_relacao_externa(p):
+    """declaracao_relacao_externa : tipo_relacao_externa CLASS_NAME classe_specialization LBRACE lista_membros_classe RBRACE"""
+    # Reutilizamos 'lista_membros_classe' aqui!
+    p[0] = {
+        "type": "RelationDeclaration",
+        "relation_type": p[1], # 'relator' ou 'relation'
+        "name": p[2],
+        "specializes": p[3],
+        "body": {"type": "ClassBody", "members": p[5]}
+    }
+
+def p_tipo_relacao_externa(p):
+    """tipo_relacao_externa : RELATOR
+                            | RELATION"""
+    p[0] = p[1]
+
+# 2. Forma Interna (dentro de uma classe)
+def p_declaracao_relacao_interna(p):
+    """declaracao_relacao_interna : estereotipo_relacao_opcional DOUBLE_HYPHEN RELATION_NAME DOUBLE_HYPHEN cardinalidade_opcional CLASS_NAME"""
+    p[0] = {
+        "type": "RelationPole",
+        "stereotype": p[1], # Pode ser None
+        "name": p[3],
+        "cardinality": p[5], # Pode ser None
+        "target_class": p[6]
+    }
+
+# 3. Auxiliares de Relação
+def p_estereotipo_relacao_opcional(p):
+    """estereotipo_relacao_opcional : AT estereotipo_relacao
+                                    | empty"""
+    if len(p) == 3:
+        p[0] = p[2]
+    else:
+        p[0] = None
+
+def p_cardinalidade_opcional(p):
+    """cardinalidade_opcional : LBRACKET cardinalidade_valor RBRACKET
+                             | empty"""
+    if len(p) == 4:
+        p[0] = p[2]
+    else:
+        p[0] = None # Ou um valor padrão, ex: '1..1'
+
+def p_cardinalidade_valor(p):
+    """cardinalidade_valor : NUMBER
+                           | NUMBER DOTDOT NUMBER
+                           | NUMBER DOTDOT ASTERISK
+                           | ASTERISK"""
+    # Esta regra apenas captura a sintaxe, não a processa.
+    if len(p) == 2:
+        p[0] = str(p[1]) # ex: '1' ou '*'
+    elif len(p) == 4:
+        p[0] = f"{p[1]}..{p[3]}" # ex: '1..5' ou '0..*'
+    else: # p[1] DOTDOT p[3]
+        p[0] = f"{p[1]}..{p[3]}"
+
+def p_estereotipo_relacao(p):
+    """estereotipo_relacao : MATERIAL | DERIVATION | COMPARATIVE | MEDIATION
+                           | CHARACTERIZATION | EXTERNALDEPENDENCE | COMPONENTOF
+                           | MEMBEROF | SUBCOLLECTIONOF | SUBQUALITYOF
+                           | INSTANTIATION | TERMINATION | PARTICIPATIONAL
+                           | PARTICIPATION | HISTORICALDEPENDENCE | CREATION
+                           | MANIFESTATION | BRINGSABOUT | TRIGGERS | COMPOSITION
+                           | AGGREGATION | INHERENCE | VALUE | FORMAL | CONSTITUTION"""
+    p[0] = p[1]
 
 
 # =============================================================================
@@ -254,7 +313,7 @@ def p_error(p):
     has_error = True
     if p:
         print(
-            f"\n[ERRO SINTÁTICO] Token inesperado: {p.type} ('{p.value}') na linha {p.lineno}"
+            f"\n[ERRO SINTÁTICO] Token inesperado: {p.type} ('{p{".value"}') na linha {p.lineno}"
         )
     else:
         print(
