@@ -1,5 +1,6 @@
 import ply.yacc as yacc
 import json
+import os
 
 # =============================================================================
 # 1. IMPORTAÇÃO DOS TOKENS E LEXER
@@ -17,26 +18,50 @@ except ImportError:
 # =============================================================================
 
 # ----------------------------------
-# A. REGRA PRINCIPAL (RAIZ DA ÁRVORE)
+# A. REGRA PRINCIPAL
 # ----------------------------------
 def p_programa(p):
-    """programa : declaracao_package declaracoes_pos_package"""
+    """programa : pre_package_decls declaracao_package declaracoes_pos_package"""
     p[0] = {
         "type": "OntologyModel",
-        "package": p[1],
-        "declarations": p[2],
+        "imports": p[1],
+        "package": p[2],
+        "declarations": p[3],
     }
+
+def p_pre_package_decls(p):
+    """pre_package_decls : declaracao_import pre_package_decls
+                         | empty"""
+    if len(p) == 3:
+        p[0] = [p[1]] + p[2]
+    else:
+        p[0] = []
+
+def p_declaracao_import(p):
+    """declaracao_import : IMPORT nome_identificador"""
+    p[0] = {"type": "Import", "target": p[2]}
 
 # ----------------------------------
 # B. DECLARAÇÃO DE PACOTE
 # ----------------------------------
 def p_declaracao_package(p):
-    """declaracao_package : PACKAGE CLASS_NAME"""
+    """declaracao_package : PACKAGE nome_identificador"""
     p[0] = {"type": "Package", "name": p[2]}
 
+def p_nome_identificador(p):
+    """nome_identificador : CLASS_NAME
+                          | RELATION_NAME"""
+    p[0] = p[1]
+
+# (NOVO) Regra flexível para nomes de Classes
+# Aceita 'Person' (CLASS_NAME) e 'Criterion_A1' (INSTANCE_NAME)
+def p_class_identifier(p):
+    """class_identifier : CLASS_NAME
+                        | INSTANCE_NAME"""
+    p[0] = p[1]
 
 # ----------------------------------
-# C. LISTA DE DECLARAÇÕES PÓS-PACOTE
+# C. LISTA DE DECLARAÇÕES
 # ----------------------------------
 def p_declaracoes_pos_package(p):
     """declaracoes_pos_package : declaracao declaracoes_pos_package
@@ -60,15 +85,37 @@ def p_declaracao(p):
 # ----------------------------------
 # E. DECLARAÇÃO DE CLASSE (CONSTRUTO 2)
 # ----------------------------------
+# (MODIFICADO) Usa class_identifier
 def p_declaracao_classe(p):
-    """declaracao_classe : estereotipo_classe CLASS_NAME classe_specialization classe_body"""
+    """declaracao_classe : estereotipo_classe class_identifier classe_natureza_opcional classe_specialization classe_body"""
     p[0] = {
         "type": "ClassDeclaration",
         "stereotype": p[1],
         "name": p[2],
-        "specializes": p[3], 
-        "body": p[4]
+        "nature": p[3],
+        "specializes": p[4], 
+        "body": p[5]
     }
+
+def p_classe_natureza_opcional(p):
+    """classe_natureza_opcional : OF natureza_classe
+                                | empty"""
+    if len(p) == 3:
+        p[0] = p[2]
+    else:
+        p[0] = None
+
+def p_natureza_classe(p):
+    """natureza_classe : FUNCTIONALCOMPLEXES
+                       | RELATOR
+                       | RELATION_NAME
+                       | INTRISICMODE
+                       | EXTRINSICMODE
+                       | QUALITY
+                       | MODE
+                       | EVENT
+                       | SITUATION"""
+    p[0] = p[1]
 
 def p_classe_specialization(p):
     """classe_specialization : SPECIALIZES lista_nomes_classe
@@ -99,16 +146,16 @@ def p_membro_classe(p):
                      | declaracao_relacao_interna"""
     p[0] = p[1]
 
+# (MODIFICADO) Usa class_identifier para listas de especialização
 def p_lista_nomes_classe(p):
-    """lista_nomes_classe : CLASS_NAME COMMA lista_nomes_classe
-                          | CLASS_NAME"""
+    """lista_nomes_classe : class_identifier COMMA lista_nomes_classe
+                          | class_identifier"""
     if len(p) == 4:
         p[0] = [p[1]] + p[3]
     else:
         p[0] = [p[1]]
 
-# --- (CORREÇÃO 1: ESTEREÓTIPOS DE CLASSE) ---
-# Em vez de 1 função com '|', 18 funções pequenas:
+# --- ESTEREÓTIPOS DE CLASSE ---
 def p_estereotipo_classe_1(p):
     """estereotipo_classe : EVENT"""
     p[0] = p[1]
@@ -171,17 +218,19 @@ def p_estereotipo_classe_19(p):
 # ----------------------------------
 # F. DECLARAÇÃO DE ENUM (CONSTRUTO 4)
 # ----------------------------------
+# (MODIFICADO) Usa class_identifier
 def p_declaracao_enum(p):
-    """declaracao_enum : ENUM CLASS_NAME LBRACE lista_individuos RBRACE"""
+    """declaracao_enum : ENUM class_identifier LBRACE lista_individuos RBRACE"""
     p[0] = {
         "type": "EnumDeclaration",
         "name": p[2],
         "members": p[4]
     }
 
+# (MODIFICADO) Usa class_identifier para membros do enum
 def p_lista_individuos(p):
-    """lista_individuos : CLASS_NAME COMMA lista_individuos
-                        | CLASS_NAME"""
+    """lista_individuos : class_identifier COMMA lista_individuos
+                        | class_identifier"""
     if len(p) == 4:
         p[0] = [p[1]] + p[3]
     else:
@@ -190,8 +239,9 @@ def p_lista_individuos(p):
 # ----------------------------------
 # G. DECLARAÇÃO DE DATATYPE (CONSTRUTO 3)
 # ----------------------------------
+# (MODIFICADO) Usa class_identifier
 def p_declaracao_datatype(p):
-    """declaracao_datatype : DATATYPE CLASS_NAME LBRACE lista_atributos_datatype RBRACE"""
+    """declaracao_datatype : DATATYPE class_identifier LBRACE lista_atributos_datatype RBRACE"""
     p[0] = {
         "type": "DataTypeDeclaration",
         "name": p[2],
@@ -217,13 +267,13 @@ def p_atributo_datatype(p):
         "datatype": p[3]
     }
 
+# (MODIFICADO) Usa class_identifier como tipo possível
 def p_tipo_atributo(p):
     """tipo_atributo : tipo_primitivo
-                     | CLASS_NAME"""
+                     | class_identifier"""
     p[0] = p[1]
 
-# --- (CORREÇÃO 2: TIPOS PRIMITIVOS) ---
-# Em vez de 1 função com '|', 7 funções pequenas:
+# --- TIPOS PRIMITIVOS ---
 def p_tipo_primitivo_1(p):
     """tipo_primitivo : NUMBER_TYPE"""
     p[0] = p[1]
@@ -250,8 +300,9 @@ def p_tipo_primitivo_7(p):
 # ----------------------------------
 # H. DECLARAÇÃO DE GENSET (CONSTRUTO 5)
 # ----------------------------------
+# Nota: genset aceita nome_identificador (maiúscula ou minúscula)
 def p_declaracao_genset(p):
-    """declaracao_genset : genset_modifiers GENSET CLASS_NAME genset_form"""
+    """declaracao_genset : genset_modifiers GENSET nome_identificador genset_form"""
     p[0] = {
         "type": "GeneralizationSet",
         "name": p[3],
@@ -277,16 +328,18 @@ def p_genset_form(p):
                    | genset_form_block"""
     p[0] = p[1]
 
+# (MODIFICADO) Usa class_identifier para 'general' e lista 'specifics'
 def p_genset_form_where(p):
-    """genset_form_where : WHERE lista_nomes_classe SPECIALIZES CLASS_NAME"""
+    """genset_form_where : WHERE lista_nomes_classe SPECIALIZES class_identifier"""
     p[0] = {
         "form": "where",
         "general": p[4],
         "specifics": p[2]
     }
 
+# (MODIFICADO) Usa class_identifier
 def p_genset_form_block(p):
-    """genset_form_block : LBRACE GENERAL CLASS_NAME SPECIFICS lista_nomes_classe RBRACE"""
+    """genset_form_block : LBRACE GENERAL class_identifier SPECIFICS lista_nomes_classe RBRACE"""
     p[0] = {
         "form": "block",
         "general": p[3],
@@ -298,14 +351,15 @@ def p_genset_form_block(p):
 # ----------------------------------
 
 # 1. Forma Externa (relator/relation)
+# (MODIFICADO) Usa class_identifier
 def p_declaracao_relacao_externa(p):
-    """declaracao_relacao_externa : tipo_relacao_externa CLASS_NAME classe_specialization LBRACE lista_membros_classe RBRACE"""
+    """declaracao_relacao_externa : tipo_relacao_externa class_identifier classe_specialization classe_body"""
     p[0] = {
         "type": "RelationDeclaration",
         "relation_type": p[1],
         "name": p[2],
         "specializes": p[3],
-        "body": {"type": "ClassBody", "members": p[5]}
+        "body": p[4]
     }
 
 def p_tipo_relacao_externa(p):
@@ -314,8 +368,9 @@ def p_tipo_relacao_externa(p):
     p[0] = p[1]
 
 # 2. Forma Interna (dentro de uma classe)
+# (MODIFICADO) Usa class_identifier para 'target_class'
 def p_declaracao_relacao_interna(p):
-    """declaracao_relacao_interna : estereotipo_relacao_opcional DOUBLE_HYPHEN RELATION_NAME DOUBLE_HYPHEN cardinalidade_opcional CLASS_NAME"""
+    """declaracao_relacao_interna : estereotipo_relacao_opcional DOUBLE_HYPHEN RELATION_NAME DOUBLE_HYPHEN cardinalidade_opcional class_identifier"""
     p[0] = {
         "type": "RelationPole",
         "stereotype": p[1],
@@ -353,9 +408,7 @@ def p_cardinalidade_valor(p):
     else:
         p[0] = f"{p[1]}..{p[3]}"
 
-
-# --- (CORREÇÃO 3: ESTEREÓTIPOS DE RELAÇÃO) ---
-# Em vez de 1 função com '|', 25 funções pequenas:
+# --- ESTEREÓTIPOS DE RELAÇÃO ---
 def p_estereotipo_relacao_1(p):
     """estereotipo_relacao : MATERIAL"""
     p[0] = p[1]
@@ -458,24 +511,16 @@ def p_error(p):
 # =============================================================================
 # 4. CONSTRUÇÃO DO PARSER
 # =============================================================================
-parser = yacc.yacc()
+parser = yacc.yacc(write_tables=False, debug=False)
 
-# Função auxiliar para ser chamada pelo main.py
 def parse_tonto_code(code_string):
     """
     Função principal para analisar o código TONTO.
-    Retorna a Árvore Sintática Abstrata (AST) ou None se houver erros.
     """
     global has_error
     has_error = False
-    
-    # Zera o lexer (importante para múltiplas execuções)
     lexer.lineno = 1
-    
-    # Chama o parser
     ast_result = parser.parse(code_string, lexer=lexer)
-    
     if has_error:
         return None
-    
     return ast_result
