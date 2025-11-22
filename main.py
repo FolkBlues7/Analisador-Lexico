@@ -325,16 +325,127 @@ disjoint complete genset PhasesOfAPatient{
     }
 }
 
+def imprimir_relatorio_amigavel(ast):
+    """
+    Transforma a AST bruta em uma árvore visual amigável para o usuário.
+    Atende ao requisito de abstração visual do professor.
+    """
+    print("\n" + "="*60)
+    print("RESUMO ESTRUTURAL DA ONTOLOGIA".center(60))
+    print("="*60)
+
+    # 1. PACOTE
+    pkg_name = ast['package']['name']
+    print(f"\n📦 PACOTE: {pkg_name}")
+    
+    # 2. IMPORTS
+    if ast['imports']:
+        print("   └── 📥 Imports:")
+        for imp in ast['imports']:
+            print(f"       • {imp['target']}")
+
+    print("   │")
+
+    # 3. DECLARAÇÕES
+    declarations = ast['declarations']
+    if not declarations:
+        print("   └── (Nenhuma declaração encontrada)")
+        return
+
+    for i, decl in enumerate(declarations):
+        is_last_decl = (i == len(declarations) - 1)
+        prefix = "   └──" if is_last_decl else "   ├──"
+        sub_prefix = "       " if is_last_decl else "   │   "
+
+        tipo = decl.get('type')
+
+        # --- VISUALIZAÇÃO DE CLASSE ---
+        if tipo == 'ClassDeclaration':
+            stereo = decl['stereotype']
+            name = decl['name']
+            specs = decl['specializes']
+            nature = decl['nature']
+            
+            # Cabeçalho da Classe
+            info_extra = ""
+            if nature: info_extra += f" (Natureza: {nature})"
+            if specs:  info_extra += f" ➡️ Specializes: {', '.join(specs)}"
+            
+            print(f"{prefix} 📄 CLASSE: {name}")
+            print(f"{sub_prefix}├── Estereótipo: <<{stereo}>>{info_extra}")
+
+            # Corpo da Classe (Atributos e Relações)
+            body = decl.get('body')
+            members = body['members'] if body and 'members' in body else []
+            
+            if not members:
+                print(f"{sub_prefix}└── (Sem atributos ou relações internas)")
+            else:
+                for j, member in enumerate(members):
+                    is_last_mem = (j == len(members) - 1)
+                    mem_pref = "└──" if is_last_mem else "├──"
+                    
+                    if member['type'] == 'Attribute':
+                        print(f"{sub_prefix}{mem_pref} 🔹 [Atributo] {member['name']} : {member['datatype']}")
+                    elif member['type'] == 'RelationPole':
+                        card = member['cardinality'] if member['cardinality'] else "1"
+                        rel_stereo = f"<<{member['stereotype']}>> " if member['stereotype'] else ""
+                        print(f"{sub_prefix}{mem_pref} 🔗 [Relação] {member['name']} {rel_stereo}[{card}] ➝ {member['target_class']}")
+
+        # --- VISUALIZAÇÃO DE ENUM ---
+        elif tipo == 'EnumDeclaration':
+            print(f"{prefix} 🔢 ENUM: {decl['name']}")
+            membros = ", ".join(decl['members'])
+            print(f"{sub_prefix}└── Valores: {{{membros}}}")
+
+        # --- VISUALIZAÇÃO DE DATATYPE ---
+        elif tipo == 'DataTypeDeclaration':
+            print(f"{prefix} 💾 DATATYPE: {decl['name']}")
+            attrs = decl['attributes']
+            if not attrs:
+                 print(f"{sub_prefix}└── (Vazio)")
+            else:
+                for j, attr in enumerate(attrs):
+                    is_last_mem = (j == len(attrs) - 1)
+                    mem_pref = "└──" if is_last_mem else "├──"
+                    print(f"{sub_prefix}{mem_pref} • {attr['name']} : {attr['datatype']}")
+
+        # --- VISUALIZAÇÃO DE GENSET ---
+        elif tipo == 'GeneralizationSet':
+            print(f"{prefix} 🔱 GENSET: {decl['name']}")
+            mods = ", ".join(decl['modifiers']) if decl['modifiers'] else "Normal"
+            print(f"{sub_prefix}├── Propriedades: {{{mods}}}")
+            print(f"{sub_prefix}├── Geral: {decl['general']}")
+            print(f"{sub_prefix}└── Específicos: {', '.join(decl['specifics'])}")
+
+        # --- VISUALIZAÇÃO DE RELAÇÃO EXTERNA ---
+        elif tipo == 'RelationDeclaration':
+            print(f"{prefix} 🔗 RELAÇÃO EXTERNA: {decl['name']}")
+            print(f"{sub_prefix}├── Tipo: <<{decl['relation_type']}>>")
+            
+            body = decl.get('body')
+            members = body['members'] if body and 'members' in body else []
+            
+            if members:
+                 for j, member in enumerate(members):
+                    is_last_mem = (j == len(members) - 1)
+                    mem_pref = "└──" if is_last_mem else "├──"
+                    # Relações externas geralmente contêm polos/atributos
+                    if member['type'] == 'RelationPole':
+                         card = member['cardinality'] if member['cardinality'] else "1"
+                         print(f"{sub_prefix}{mem_pref} Conecta: -- {member['name']} [{card}] ➝ {member['target_class']}")
+            else:
+                print(f"{sub_prefix}└── (Sem definições de polos)")
+    
+    print("\n" + "="*60 + "\n")
+
+
 # =============================================================================
 # FUNÇÕES DE ANÁLISE
 # =============================================================================
 
-# (REQUISITO 2) Esta é a função da FASE 1, 100% funcional.
 def run_analysis_lexica(codigo_para_analise, nome_do_teste):
-    """
-    Executa a ANÁLISE LÉXICA (Fase 1)
-    Imprime a lista de tokens e a tabela de síntese.
-    """
+    """ Executa a ANÁLISE LÉXICA (Fase 1) """
     print(f"\n--- Iniciando Análise LÉXICA para: {nome_do_teste} ---")
     
     token_counts = Counter()
@@ -361,38 +472,29 @@ def run_analysis_lexica(codigo_para_analise, nome_do_teste):
 
 
 def run_analysis_sintatica(codigo_para_analise, nome_do_teste):
-    """
-    Executa a ANÁLISE SINTÁTICA (Fase 2)
-    Chama o parser e imprime a Árvore Sintática Abstrata (AST).
-    """
+    """ Executa a ANÁLISE SINTÁTICA (Fase 2) """
     print(f"\n--- Iniciando Análise SINTÁTICA para: {nome_do_teste} ---")
 
-    # Chama a função principal do nosso parser.py
     ast_result = parse_tonto_code(codigo_para_analise)
 
     if ast_result:
-        print("\n[SUCESSO] A sintaxe do código está CORRETA.")
-        print("\n" + "="*50)
-        print("=== ÁRVORE SINTÁTICA ABSTRATA (AST) GERADA ===".center(50))
-        print("="*50)
+        print("\n[SUCESSO] A estrutura sintática está CORRETA. Gerando relatório...")
         
-        # Imprime a árvore formatada como JSON
-        print(json.dumps(ast_result, indent=2))
+        # 1. Opção de ver o JSON puro (útil para debug)
+        # print(json.dumps(ast_result, indent=2)) 
         
-        print("\n--- Análise Sintática Concluída ---")
+        # 2. NOVA VISUALIZAÇÃO AMIGÁVEL
+        imprimir_relatorio_amigavel(ast_result)
+        
     else:
         print("\n[FALHA] A análise sintática falhou.")
-        print("Verifique os [ERRO SINTÁTICO] reportados acima.")
-        print("\n--- Análise Sintática Concluída com Erros ---")
+        print("Verifique os erros reportados acima.")
 
 
 def run_analysis_semantica(codigo_para_analise, nome_do_teste):
-    """
-    Placeholder para a ANÁLISE SEMÂNTICA (Fase 3)
-    """
+    """ Placeholder para a ANÁLISE SEMÂNTICA (Fase 3) """
     print(f"\n--- Iniciando Análise SEMÂNTICA para: {nome_do_teste} ---")
     print("\n[PENDENTE] A Análise Semântica (Fase 3) ainda não foi implementada.")
-    print("\n--- Análise Semântica Concluída (Placeholder) ---")
 
 
 # =============================================================================
@@ -400,16 +502,13 @@ def run_analysis_semantica(codigo_para_analise, nome_do_teste):
 # =============================================================================
 
 def main():
-    """ Loop principal que exibe o menu e processa a entrada do usuário. """
-    
     analysis_functions = {
-        '1': ('Análise Léxica (Fase 1)', run_analysis_lexica), # <-- (REQUISITO 2)
+        '1': ('Análise Léxica (Fase 1)', run_analysis_lexica),
         '2': ('Análise Sintática (Fase 2)', run_analysis_sintatica),
         '3': ('Análise Semântica (Fase 3)', run_analysis_semantica),
     }
 
     while True:
-        # 1. MENU: SELEÇÃO DO TIPO DE ANÁLISE
         print("\n" + "="*60)
         print("  ANALISADOR DE LINGUAGEM TONTO".center(60))
         print("="*60)
@@ -425,18 +524,16 @@ def main():
             break
         
         if tipo_escolha not in analysis_functions:
-            print("Opção inválida. Tente novamente.")
+            print("Opção inválida.")
             continue
             
         selected_analysis_name, funcao_analise = analysis_functions[tipo_escolha]
         
-        # 2. MENU: SELEÇÃO DE EXEMPLO OU ARQUIVO
         while True:
             print("\n" + "-"*60)
             print(f"Executando: {selected_analysis_name}")
             print("Selecione uma opção para analisar:")
             
-            # (REQUISITO 1) Exemplos mantidos
             for key, example in TEST_EXAMPLES.items():
                 print(f"  {key}. {example['name']}")
             print("  6. Analisar um arquivo externo (.tonto)")
@@ -445,7 +542,7 @@ def main():
             exemplo_escolha = input("Digite sua escolha: ").strip().upper()
 
             if exemplo_escolha == 'V':
-                break # Volta para o menu de tipo de análise
+                break 
 
             codigo_para_analise = ""
             nome_do_teste = ""
@@ -467,21 +564,13 @@ def main():
                     print(f"\n[ERRO] Não foi possível ler o arquivo: {e}")
                     continue
             else:
-                print("Opção inválida. Tente novamente.")
+                print("Opção inválida.")
                 continue
 
-            # 3. EXECUTAR ANÁLISE
-            print("\n" + "#" * 60)
-            print("=== CÓDIGO FONTE CARREGADO ===".center(60))
-            print(codigo_para_analise)
-            print("#" * 60)
-
-            # Chama a função de análise selecionada (Léxica ou Sintática)
+            # Executa a análise
             funcao_analise(codigo_para_analise, nome_do_teste)
-
             input("\nPressione ENTER para continuar...")
-            break # Volta para o menu de seleção de exemplos
-
+            break 
 
 if __name__ == '__main__':
     main()
