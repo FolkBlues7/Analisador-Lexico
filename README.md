@@ -1,5 +1,7 @@
 # Analisador Léxico para a Linguagem TONTO
 
+## 🧩 Fase 2 — Análise Léxica (Lexer)
+
 Projeto da disciplina de Compiladores para a criação de um analisador léxico em Python para a "Textual Ontology Language" (TONTO).
 
 ## 📖 Sobre o Projeto
@@ -162,3 +164,87 @@ kind Person
   TEENAGER                   : 2
   UNDERMAINTENANCECAR        : 1
 ```
+
+## 🧩 Fase 2 — Análise Sintática (Parser)
+
+Além da análise léxica, o projeto agora implementa a segunda fase do compilador, responsável por verificar se a estrutura da ontologia TONTO está sintaticamente correta.
+A interação foi ampliada para permitir escolher entre análise léxica, sintática e (futuramente) semântica.
+
+Ao executar python main.py, o menu inicial é:
+```
+============================================================
+                ANALISADOR DE LINGUAGEM TONTO
+============================================================
+Selecione o TIPO de análise que deseja executar:
+  1. Análise Léxica (Fase 1)
+  2. Análise Sintática (Fase 2)
+  3. Análise Semântica (Fase 3)
+  Q. Sair
+Digite sua escolha:
+
+
+Escolhendo a opção 2, o menu de testes sintáticos é apresentado:
+
+------------------------------------------------------------
+Executando: Análise Sintática (Fase 2)
+Selecione uma opção para analisar:
+  1. CarOwnershipExample
+  2. CarRentalExample
+  3. FoodAllergyExample
+  4. TDAHExample
+  6. Analisar um arquivo externo (.tonto)
+  V. Voltar ao menu anterior
+Digite sua escolha:
+
+
+Ao selecionar um dos exemplos (por exemplo, o CarOwnershipExample), o parser executa as validações sintáticas e gera um relatório estrutural:
+
+--- Iniciando Análise SINTÁTICA para: CarOwnershipExample ---
+
+[SUCESSO] A estrutura sintática está CORRETA. Gerando relatório...
+
+============================================================
+               RESUMO ESTRUTURAL DA ONTOLOGIA
+============================================================
+
+📦 PACOTE: CarOwnership
+   │
+   ├── 📄 CLASSE: Organization
+   │   ├── Estereótipo: <<kind>>
+   │   └── (Sem atributos ou relações internas)
+   ├── 📄 CLASSE: CarAgency
+   │   ├── Estereótipo: <<subkind>> ➡️ Specializes: Organization
+   │   └── (Sem atributos ou relações internas)
+   ├── 📄 CLASSE: Car
+   │   ├── Estereótipo: <<kind>>
+   │   └── (Sem atributos ou relações internas)
+   └── 🔗 RELAÇÃO EXTERNA: CarOwnership
+       ├── Tipo: <<relator>>
+       ├── Conecta: -- involvesOwner [1] ➝ CarAgency
+       └── Conecta: -- involvesProperty [1] ➝ Car
+
+============================================================
+
+Pressione ENTER para continuar...
+```
+
+A estrutura acima é gerada dinamicamente com base nos nós sintáticos identificados pelo parser.
+
+## 🔍 Fase 3 — Análise Semântica (Em Construção)
+
+A terceira fase do compilador — a análise semântica — está sendo desenvolvida e será responsável por verificar:
+
+consistência entre estereótipos e tipos ontológicos
+
+correspondência entre papéis e classes que os suportam
+
+coerência das cardinalidades
+
+restrições semânticas de relações e relators
+
+herança e especialização compatíveis
+
+O menu já está implementado e pode ser selecionado:
+
+[EM CONSTRUÇÃO] A Fase 3 ainda não está disponível.
+Retorne ao menu para escolher outra opção.
