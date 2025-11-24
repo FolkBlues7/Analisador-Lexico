@@ -1,6 +1,6 @@
 # Analisador Léxico para a Linguagem TONTO
 
-## 🧩 Fase 2 — Análise Léxica (Lexer)
+## 🧩 Fase 1 — Análise Léxica (Lexer)
 
 Projeto da disciplina de Compiladores para a criação de um analisador léxico em Python para a "Textual Ontology Language" (TONTO).
 
