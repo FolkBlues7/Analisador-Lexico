@@ -1,23 +1,24 @@
 import os
 import sys
-import json # <-- Importante para formatar a AST
+import json  # <-- Importante para formatar a AST
 from collections import Counter
 
 # --- Importações dos nossos módulos ---
 
 # (REQUISITO 2) Importa o lexer, necessário para a Análise Léxica (Fase 1)
 from lexer.lexer import lexer
+
 # Importa a função principal do parser (Fase 2)
-from parser.parser import parse_tonto_code 
+from parser.parser import parse_tonto_code
 
 # =============================================================================
 # EXEMPLOS DE ENTRADA (REQUISITO 1: Mantidos)
 # =============================================================================
 
 TEST_EXAMPLES = {
-    '1': {
-        'name': 'CarOwnershipExample',
-        'code': """
+    "1": {
+        "name": "CarOwnershipExample",
+        "code": """
 // Exemplo 1: Car Ownership
 package CarOwnership 
 
@@ -32,11 +33,11 @@ relator CarOwnership {
     @mediation
     -- involvesProperty -- [1] Car
 }
-"""
+""",
     },
-    '2': {
-        'name': 'CarRentalExample',
-        'code': """
+    "2": {
+        "name": "CarRentalExample",
+        "code": """
 // Exemplo 2: Car Rental
 package CarRental 
 
@@ -86,11 +87,11 @@ relator CarRental {
     @mediation
     -- involvesCustomer --[1] Customer
 }
-"""
+""",
     },
-    '3': {
-        'name': 'FoodAllergyExample',
-        'code': """
+    "3": {
+        "name": "FoodAllergyExample",
+        "code": """
 // Exemplo 3: Alergia Alimentar
 import alergiaalimentar
 
@@ -208,11 +209,11 @@ genset disjoint_complete {
     general Tratamento
     specifics Imunoterapia_Oral, Medicamento, Dieta_de_Exclusao
 }
-"""
+""",
     },
-    '4': {
-        'name': 'TDAHExample',
-        'code': """
+    "4": {
+        "name": "TDAHExample",
+        "code": """
 // Exemplo 4: TDAH
 import TDAH
 
@@ -321,133 +322,151 @@ disjoint complete genset PhasesOfAPatient{
     general Patient
     specifics Preschool_Age, School_Age, Adult, Teenager
 }
-"""
-    }
+""",
+    },
 }
+
 
 def imprimir_relatorio_amigavel(ast):
     """
     Transforma a AST bruta em uma árvore visual amigável para o usuário.
     Atende ao requisito de abstração visual do professor.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("RESUMO ESTRUTURAL DA ONTOLOGIA".center(60))
-    print("="*60)
+    print("=" * 60)
 
-    # 1. PACOTE
-    pkg_name = ast['package']['name']
-    print(f"\n📦 PACOTE: {pkg_name}")
-    
-    # 2. IMPORTS
-    if ast['imports']:
-        print("   └── 📥 Imports:")
-        for imp in ast['imports']:
-            print(f"       • {imp['target']}")
+    # 1. IMPORTS (fora do pacote)
+    if ast["imports"]:
+        print("\n📥 IMPORTS:")
+        for imp in ast["imports"]:
+            print(f"   • {imp['target']}")
 
-    print("   │")
+    # Linha de separação
+    print("\n" + "-" * 60)
+
+    # 2. PACOTE
+    pkg_name = ast["package"]["name"]
+    print(f"📦 PACOTE: {pkg_name}")
+    print("   │")  # mantém barra vertical apenas depois do pacote
 
     # 3. DECLARAÇÕES
-    declarations = ast['declarations']
+    declarations = ast["declarations"]
     if not declarations:
         print("   └── (Nenhuma declaração encontrada)")
         return
 
     for i, decl in enumerate(declarations):
-        is_last_decl = (i == len(declarations) - 1)
+        is_last_decl = i == len(declarations) - 1
         prefix = "   └──" if is_last_decl else "   ├──"
         sub_prefix = "       " if is_last_decl else "   │   "
 
-        tipo = decl.get('type')
+        tipo = decl.get("type")
 
         # --- VISUALIZAÇÃO DE CLASSE ---
-        if tipo == 'ClassDeclaration':
-            stereo = decl['stereotype']
-            name = decl['name']
-            specs = decl['specializes']
-            nature = decl['nature']
-            
+        if tipo == "ClassDeclaration":
+            stereo = decl["stereotype"]
+            name = decl["name"]
+            specs = decl["specializes"]
+            nature = decl["nature"]
+
             # Cabeçalho da Classe
             info_extra = ""
-            if nature: info_extra += f" (Natureza: {nature})"
-            if specs:  info_extra += f" ➡️ Specializes: {', '.join(specs)}"
-            
+            if nature:
+                info_extra += f" (Natureza: {nature})"
+            if specs:
+                info_extra += f" ➡️ Specializes: {', '.join(specs)}"
+
             print(f"{prefix} 📄 CLASSE: {name}")
             print(f"{sub_prefix}├── Estereótipo: <<{stereo}>>{info_extra}")
 
             # Corpo da Classe (Atributos e Relações)
-            body = decl.get('body')
-            members = body['members'] if body and 'members' in body else []
-            
+            body = decl.get("body")
+            members = body["members"] if body and "members" in body else []
+
             if not members:
                 print(f"{sub_prefix}└── (Sem atributos ou relações internas)")
             else:
                 for j, member in enumerate(members):
-                    is_last_mem = (j == len(members) - 1)
+                    is_last_mem = j == len(members) - 1
                     mem_pref = "└──" if is_last_mem else "├──"
-                    
-                    if member['type'] == 'Attribute':
-                        print(f"{sub_prefix}{mem_pref} 🔹 [Atributo] {member['name']} : {member['datatype']}")
-                    elif member['type'] == 'RelationPole':
-                        card = member['cardinality'] if member['cardinality'] else "1"
-                        rel_stereo = f"<<{member['stereotype']}>> " if member['stereotype'] else ""
-                        print(f"{sub_prefix}{mem_pref} 🔗 [Relação] {member['name']} {rel_stereo}[{card}] ➝ {member['target_class']}")
+
+                    if member["type"] == "Attribute":
+                        print(
+                            f"{sub_prefix}{mem_pref} 🔹 [Atributo] {member['name']} : {member['datatype']}"
+                        )
+                    elif member["type"] == "RelationPole":
+                        card = member["cardinality"] if member["cardinality"] else "1"
+                        rel_stereo = (
+                            f"<<{member['stereotype']}>> "
+                            if member["stereotype"]
+                            else ""
+                        )
+                        print(
+                            f"{sub_prefix}{mem_pref} 🔗 [Relação] {member['name']} {rel_stereo}[{card}] ➝ {member['target_class']}"
+                        )
 
         # --- VISUALIZAÇÃO DE ENUM ---
-        elif tipo == 'EnumDeclaration':
+        elif tipo == "EnumDeclaration":
             print(f"{prefix} 🔢 ENUM: {decl['name']}")
-            membros = ", ".join(decl['members'])
+            membros = ", ".join(decl["members"])
             print(f"{sub_prefix}└── Valores: {{{membros}}}")
 
         # --- VISUALIZAÇÃO DE DATATYPE ---
-        elif tipo == 'DataTypeDeclaration':
+        elif tipo == "DataTypeDeclaration":
             print(f"{prefix} 💾 DATATYPE: {decl['name']}")
-            attrs = decl['attributes']
+            attrs = decl["attributes"]
             if not attrs:
-                 print(f"{sub_prefix}└── (Vazio)")
+                print(f"{sub_prefix}└── (Vazio)")
             else:
                 for j, attr in enumerate(attrs):
-                    is_last_mem = (j == len(attrs) - 1)
+                    is_last_mem = j == len(attrs) - 1
                     mem_pref = "└──" if is_last_mem else "├──"
-                    print(f"{sub_prefix}{mem_pref} • {attr['name']} : {attr['datatype']}")
+                    print(
+                        f"{sub_prefix}{mem_pref} • {attr['name']} : {attr['datatype']}"
+                    )
 
         # --- VISUALIZAÇÃO DE GENSET ---
-        elif tipo == 'GeneralizationSet':
+        elif tipo == "GeneralizationSet":
             print(f"{prefix} 🔱 GENSET: {decl['name']}")
-            mods = ", ".join(decl['modifiers']) if decl['modifiers'] else "Normal"
+            mods = ", ".join(decl["modifiers"]) if decl["modifiers"] else "Normal"
             print(f"{sub_prefix}├── Propriedades: {{{mods}}}")
             print(f"{sub_prefix}├── Geral: {decl['general']}")
             print(f"{sub_prefix}└── Específicos: {', '.join(decl['specifics'])}")
 
         # --- VISUALIZAÇÃO DE RELAÇÃO EXTERNA ---
-        elif tipo == 'RelationDeclaration':
+        elif tipo == "RelationDeclaration":
             print(f"{prefix} 🔗 RELAÇÃO EXTERNA: {decl['name']}")
             print(f"{sub_prefix}├── Tipo: <<{decl['relation_type']}>>")
-            
-            body = decl.get('body')
-            members = body['members'] if body and 'members' in body else []
-            
+
+            body = decl.get("body")
+            members = body["members"] if body and "members" in body else []
+
             if members:
-                 for j, member in enumerate(members):
-                    is_last_mem = (j == len(members) - 1)
+                for j, member in enumerate(members):
+                    is_last_mem = j == len(members) - 1
                     mem_pref = "└──" if is_last_mem else "├──"
                     # Relações externas geralmente contêm polos/atributos
-                    if member['type'] == 'RelationPole':
-                         card = member['cardinality'] if member['cardinality'] else "1"
-                         print(f"{sub_prefix}{mem_pref} Conecta: -- {member['name']} [{card}] ➝ {member['target_class']}")
+                    if member["type"] == "RelationPole":
+                        card = member["cardinality"] if member["cardinality"] else "1"
+                        print(
+                            f"{sub_prefix}{mem_pref} Conecta: -- {member['name']} [{card}] ➝ {member['target_class']}"
+                        )
             else:
                 print(f"{sub_prefix}└── (Sem definições de polos)")
-    
-    print("\n" + "="*60 + "\n")
+
+    print("\n" + "=" * 60 + "\n")
 
 
 # =============================================================================
 # FUNÇÕES DE ANÁLISE
 # =============================================================================
 
+
 def run_analysis_lexica(codigo_para_analise, nome_do_teste):
-    """ Executa a ANÁLISE LÉXICA (Fase 1) """
+    """Executa a ANÁLISE LÉXICA (Fase 1)"""
     print(f"\n--- Iniciando Análise LÉXICA para: {nome_do_teste} ---")
-    
+
     token_counts = Counter()
     lexer.lineno = 1
     lexer.input(codigo_para_analise)
@@ -457,12 +476,14 @@ def run_analysis_lexica(codigo_para_analise, nome_do_teste):
         token = lexer.token()
         if not token:
             break
-        print(f"  [Tipo: {token.type:<20} Lexema: '{token.value}' Linha: {token.lineno}]")
+        print(
+            f"  [Tipo: {token.type:<20} Lexema: '{token.value}' Linha: {token.lineno}]"
+        )
         token_counts[token.type] += 1
-        
-    print("\n" + "="*50)
+
+    print("\n" + "=" * 50)
     print("=== TABELA DE SÍNTESE (CONTAGEM DE TOKENS) ===".center(50))
-    print("="*50)
+    print("=" * 50)
     if not token_counts:
         print("Nenhum token foi encontrado.")
     else:
@@ -472,27 +493,27 @@ def run_analysis_lexica(codigo_para_analise, nome_do_teste):
 
 
 def run_analysis_sintatica(codigo_para_analise, nome_do_teste):
-    """ Executa a ANÁLISE SINTÁTICA (Fase 2) """
+    """Executa a ANÁLISE SINTÁTICA (Fase 2)"""
     print(f"\n--- Iniciando Análise SINTÁTICA para: {nome_do_teste} ---")
 
     ast_result = parse_tonto_code(codigo_para_analise)
 
     if ast_result:
         print("\n[SUCESSO] A estrutura sintática está CORRETA. Gerando relatório...")
-        
+
         # 1. Opção de ver o JSON puro (útil para debug)
-        # print(json.dumps(ast_result, indent=2)) 
-        
+        # print(json.dumps(ast_result, indent=2))
+
         # 2. NOVA VISUALIZAÇÃO AMIGÁVEL
         imprimir_relatorio_amigavel(ast_result)
-        
+
     else:
         print("\n[FALHA] A análise sintática falhou.")
         print("Verifique os erros reportados acima.")
 
 
 def run_analysis_semantica(codigo_para_analise, nome_do_teste):
-    """ Placeholder para a ANÁLISE SEMÂNTICA (Fase 3) """
+    """Placeholder para a ANÁLISE SEMÂNTICA (Fase 3)"""
     print(f"\n--- Iniciando Análise SEMÂNTICA para: {nome_do_teste} ---")
     print("\n[PENDENTE] A Análise Semântica (Fase 3) ainda não foi implementada.")
 
@@ -501,63 +522,66 @@ def run_analysis_semantica(codigo_para_analise, nome_do_teste):
 # LOOP PRINCIPAL (MAIN)
 # =============================================================================
 
+
 def main():
     analysis_functions = {
-        '1': ('Análise Léxica (Fase 1)', run_analysis_lexica),
-        '2': ('Análise Sintática (Fase 2)', run_analysis_sintatica),
-        '3': ('Análise Semântica (Fase 3)', run_analysis_semantica),
+        "1": ("Análise Léxica (Fase 1)", run_analysis_lexica),
+        "2": ("Análise Sintática (Fase 2)", run_analysis_sintatica),
+        "3": ("Análise Semântica (Fase 3)", run_analysis_semantica),
     }
 
     while True:
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("  ANALISADOR DE LINGUAGEM TONTO".center(60))
-        print("="*60)
+        print("=" * 60)
         print("Selecione o TIPO de análise que deseja executar:")
         for key, (name, _) in analysis_functions.items():
             print(f"  {key}. {name}")
         print("  Q. Sair")
-        
+
         tipo_escolha = input("Digite sua escolha: ").strip().upper()
 
-        if tipo_escolha == 'Q':
+        if tipo_escolha == "Q":
             print("Saindo...")
             break
-        
+
         if tipo_escolha not in analysis_functions:
             print("Opção inválida.")
             continue
-            
+
         selected_analysis_name, funcao_analise = analysis_functions[tipo_escolha]
-        
+
         while True:
-            print("\n" + "-"*60)
+            print("\n" + "-" * 60)
             print(f"Executando: {selected_analysis_name}")
             print("Selecione uma opção para analisar:")
-            
+
             for key, example in TEST_EXAMPLES.items():
                 print(f"  {key}. {example['name']}")
-            print("  6. Analisar um arquivo externo (.tonto)")
+            print("  E. Analisar um arquivo externo (.tonto)")
             print("  V. Voltar ao menu anterior")
 
             exemplo_escolha = input("Digite sua escolha: ").strip().upper()
 
-            if exemplo_escolha == 'V':
-                break 
+            if exemplo_escolha == "V":
+                break
 
             codigo_para_analise = ""
             nome_do_teste = ""
 
             if exemplo_escolha in TEST_EXAMPLES:
-                codigo_para_analise = TEST_EXAMPLES[exemplo_escolha]['code']
-                nome_do_teste = TEST_EXAMPLES[exemplo_escolha]['name']
-            
-            elif exemplo_escolha == '6':
-                file_path = input("Digite o caminho completo para o arquivo .tonto: ").strip()
+                codigo_para_analise = TEST_EXAMPLES[exemplo_escolha]["code"]
+                nome_do_teste = TEST_EXAMPLES[exemplo_escolha]["name"]
+
+            elif exemplo_escolha == "E":
+                file_path = input(
+                    "Digite o caminho completo para o arquivo .tonto: "
+                ).strip()
                 if not os.path.exists(file_path):
                     print(f"\n[ERRO] Arquivo não encontrado: {file_path}")
                     continue
                 try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
+                    with open(file_path, "r", encoding="utf-8") as f:
                         codigo_para_analise = f.read()
                     nome_do_teste = f"Arquivo Externo: {os.path.basename(file_path)}"
                 except Exception as e:
@@ -570,7 +594,8 @@ def main():
             # Executa a análise
             funcao_analise(codigo_para_analise, nome_do_teste)
             input("\nPressione ENTER para continuar...")
-            break 
+            break
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
