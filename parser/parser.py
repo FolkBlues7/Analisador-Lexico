@@ -445,11 +445,22 @@ def p_genset_form_where(p):
 
 # (MODIFICADO) Usa class_identifier
 def p_genset_form_block(p):
-    """
-    genset_form_block : LBRACE GENERAL class_identifier maybe_comma SPECIFICS lista_nomes_classe RBRACE
-    """
-    # p[3] = geral, p[5] = lista de específicos
-    p[0] = {"form": "block", "general": p[3], "specifics": p[6]}
+    """genset_form_block : LBRACE GENERAL class_identifier genset_categorizer_opcional SPECIFICS lista_nomes_classe RBRACE"""
+    p[0] = {
+        "form": "block",
+        "general": p[3],
+        "categorizer": p[4], 
+        "specifics": p[6]
+    }
+
+#ainda testando essa parte
+def p_genset_categorizer_opcional(p):
+    """genset_categorizer_opcional : CATEGORIZER class_identifier
+                                   | empty"""
+    if len(p) == 3:
+        p[0] = p[2] # Retorna o nome da classe categorizadora
+    else:
+        p[0] = None
 
 
 def p_maybe_comma(p):
