@@ -104,15 +104,24 @@ def p_declaracao_high_order_type(p):
 # ----------------------------------
 # (MODIFICADO) Usa class_identifier
 def p_declaracao_classe(p):
-    """declaracao_classe : estereotipo_classe class_identifier classe_natureza_opcional classe_specialization classe_body"""
+    """declaracao_classe : estereotipo_classe class_identifier classe_natureza_opcional classe_specialization classe_instanceof_opcional classe_body"""
     p[0] = {
         "type": "ClassDeclaration",
         "stereotype": p[1],
         "name": p[2],
         "nature": p[3],
         "specializes": p[4],
-        "body": p[5],
+        "instanceOf": p[5], 
+        "body": p[6]
     }
+
+def p_classe_instanceof_opcional(p):
+    """classe_instanceof_opcional : LPAREN INSTANCEOF class_identifier RPAREN
+                                  | empty"""
+    if len(p) == 5:
+        p[0] = p[3] # Retorna o nome do tipo (ex: PersonTypeByAge)
+    else:
+        p[0] = None
 
 def p_classe_natureza_opcional(p):
     """classe_natureza_opcional : OF natureza_classe
