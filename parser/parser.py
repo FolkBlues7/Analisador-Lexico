@@ -99,6 +99,8 @@ def p_declaracao_high_order_type(p):
     """declaracao_high_order_type : TYPE class_identifier"""
     p[0] = {"type": "HighOrderType", "name": p[2]}
 
+    
+
 # ----------------------------------
 # E. DECLARAÇÃO DE CLASSE (CONSTRUTO 2)
 # ----------------------------------
@@ -111,15 +113,15 @@ def p_declaracao_classe(p):
         "name": p[2],
         "nature": p[3],
         "specializes": p[4],
-        "instanceOf": p[5], 
-        "body": p[6]
+        "instanceOf": p[5], # Adicionar este campo
+        "body": p[6]        # Ajustar índice para p[6]
     }
 
 def p_classe_instanceof_opcional(p):
     """classe_instanceof_opcional : LPAREN INSTANCEOF class_identifier RPAREN
                                   | empty"""
     if len(p) == 5:
-        p[0] = p[3] # Retorna o nome do tipo (ex: PersonTypeByAge)
+        p[0] = p[3]
     else:
         p[0] = None
 
@@ -174,9 +176,37 @@ def p_lista_membros_classe(p):
 
 def p_membro_classe(p):
     """membro_classe : atributo_datatype
-    | declaracao_relacao_interna
-    | classe_relation_internal"""
+                     | relacao_nomeada
+                     | relacao_nao_nomeada"""
     p[0] = p[1]
+
+# CASO 1: Relação com nome (Ex: [1] <>-- has -- [1] Department)
+def p_relacao_nomeada(p):
+    """relacao_nomeada : estereotipo_relacao_opcional cardinalidade_opcional seta RELATION_NAME seta cardinalidade_opcional class_identifier"""
+    p[0] = {
+        "type": "RelationPole",
+        "stereotype": p[1],
+        "source_cardinality": p[2],
+        "arrow": p[3],
+        "name": p[4], # Tem nome ('has')
+        "target_cardinality": p[6],
+        "target_class": p[7],
+        "is_named": True
+    }
+
+# CASO 2: Relação direta/sem nome (Ex: [1] <>-- [1] JuniorStaff)
+def p_relacao_nao_nomeada(p):
+    """relacao_nao_nomeada : estereotipo_relacao_opcional cardinalidade_opcional seta cardinalidade_opcional class_identifier"""
+    p[0] = {
+        "type": "RelationPole",
+        "stereotype": p[1],
+        "source_cardinality": p[2],
+        "arrow": p[3],
+        "name": None, # Não tem nome
+        "target_cardinality": p[4],
+        "target_class": p[5],
+        "is_named": False
+    }
 
 
 def p_classe_relation_internal(p):
@@ -445,12 +475,13 @@ def p_genset_form_where(p):
 
 # (MODIFICADO) Usa class_identifier
 def p_genset_form_block(p):
+    # Adicione 'genset_categorizer_opcional' antes de SPECIFICS
     """genset_form_block : LBRACE GENERAL class_identifier genset_categorizer_opcional SPECIFICS lista_nomes_classe RBRACE"""
     p[0] = {
         "form": "block",
         "general": p[3],
         "categorizer": p[4], 
-        "specifics": p[6]
+        "specifics": p[6]    
     }
 
 #ainda testando essa parte
@@ -458,7 +489,7 @@ def p_genset_categorizer_opcional(p):
     """genset_categorizer_opcional : CATEGORIZER class_identifier
                                    | empty"""
     if len(p) == 3:
-        p[0] = p[2] # Retorna o nome da classe categorizadora
+        p[0] = p[2]
     else:
         p[0] = None
 
@@ -486,7 +517,7 @@ def p_declaracao_relacao_externa(p):
         "relation_type": p[1],
         "name": p[2],
         "specializes": p[3],
-        "body": p[4],
+        "body": p[4]
     }
 
 
@@ -769,7 +800,6 @@ parser = yacc.yacc(
     tabmodule="parsetab",  # nome do arquivo de tabelas
 )
 
-parser = yacc.yacc(write_tables=False, debug=False)
 def parse_tonto_code(code_string):
     global has_error
     has_error = False

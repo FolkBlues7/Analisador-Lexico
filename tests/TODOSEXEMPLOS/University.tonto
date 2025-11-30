@@ -27,7 +27,7 @@ subkind SeniorStaff specializes Staff
 
 roleMixin Employer
 
-role UniversityEmployer specializes Employer ,
+role UniversityEmployer specializes Employer
 
 relator EmploymentContract {
 @mediation

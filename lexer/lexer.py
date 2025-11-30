@@ -5,11 +5,18 @@ import os
 # -----------------------------------------------------------------------------
 # IMPORTAÇÃO COM FALLBACK
 # -----------------------------------------------------------------------------
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(current_dir)
+
 try:
-    from .tokens import tokens, reserved
-except ImportError:
-    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     from tokens import tokens, reserved
+except ImportError:
+    # Fallback caso a execução seja feita de outro nível
+    try:
+        from .tokens import tokens, reserved
+    except ImportError:
+        print("[ERRO FATAL NO LEXER] Não foi possível importar 'tokens.py'.")
+        sys.exit(1)
 
 # -----------------------------------------------------------------------------
 # SÍMBOLOS ESPECIAIS
