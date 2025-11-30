@@ -329,133 +329,143 @@ disjoint complete genset PhasesOfAPatient{
 
 def imprimir_relatorio_amigavel(ast):
     """
-    Transforma a AST bruta em uma árvore visual amigável para o usuário.
-    Atende ao requisito de abstração visual do professor.
+    Transforma a AST bruta em uma árvore visual amigável.
+    Versão atualizada para suportar Relations com Source/Target Cardinality.
     """
-    print("\n" + "=" * 60)
+    print("\n" + "="*60)
     print("RESUMO ESTRUTURAL DA ONTOLOGIA".center(60))
-    print("=" * 60)
+    print("="*60)
 
-    # 1. IMPORTS (fora do pacote)
-    if ast["imports"]:
-        print("\n📥 IMPORTS:")
-        for imp in ast["imports"]:
-            print(f"   • {imp['target']}")
+    # 1. PACOTE
+    pkg_name = ast['package']['name']
+    print(f"\n📦 PACOTE: {pkg_name}")
+    
+    # 2. IMPORTS
+    if ast['imports']:
+        print("   └── 📥 IMPORTS:")
+        for imp in ast['imports']:
+            print(f"       • {imp['target']}")
 
-    # Linha de separação
-    print("\n" + "-" * 60)
-
-    # 2. PACOTE
-    pkg_name = ast["package"]["name"]
-    print(f"📦 PACOTE: {pkg_name}")
-    print("   │")  # mantém barra vertical apenas depois do pacote
+    print("   │")
 
     # 3. DECLARAÇÕES
-    declarations = ast["declarations"]
+    declarations = ast['declarations']
     if not declarations:
         print("   └── (Nenhuma declaração encontrada)")
         return
 
     for i, decl in enumerate(declarations):
-        is_last_decl = i == len(declarations) - 1
+        is_last_decl = (i == len(declarations) - 1)
         prefix = "   └──" if is_last_decl else "   ├──"
         sub_prefix = "       " if is_last_decl else "   │   "
 
-        tipo = decl.get("type")
+        tipo = decl.get('type')
 
         # --- VISUALIZAÇÃO DE CLASSE ---
-        if tipo == "ClassDeclaration":
-            stereo = decl["stereotype"]
-            name = decl["name"]
-            specs = decl["specializes"]
-            nature = decl["nature"]
-
-            # Cabeçalho da Classe
+        if tipo == 'ClassDeclaration':
+            stereo = decl['stereotype']
+            name = decl['name']
+            specs = decl['specializes']
+            nature = decl['nature']
+            
+            # Cabeçalho
             info_extra = ""
-            if nature:
-                info_extra += f" (Natureza: {nature})"
-            if specs:
-                info_extra += f" ➡️ Specializes: {', '.join(specs)}"
-
+            if nature: info_extra += f" ({nature})"
+            if specs:  info_extra += f" ➡️ Specializes: {', '.join(specs)}"
+            
             print(f"{prefix} 📄 CLASSE: {name}")
             print(f"{sub_prefix}├── Estereótipo: <<{stereo}>>{info_extra}")
 
-            # Corpo da Classe (Atributos e Relações)
-            body = decl.get("body")
-            members = body["members"] if body and "members" in body else []
-
+            # Corpo
+            body = decl.get('body')
+            members = body['members'] if body and 'members' in body else []
+            
             if not members:
                 print(f"{sub_prefix}└── (Sem atributos ou relações internas)")
             else:
                 for j, member in enumerate(members):
-                    is_last_mem = j == len(members) - 1
+                    is_last_mem = (j == len(members) - 1)
                     mem_pref = "└──" if is_last_mem else "├──"
+                    
+                    if member['type'] == 'Attribute':
+                        # Atributos usam 'cardinality' simples
+                        card = member.get('cardinality')
+                        card_str = f" [{card}]" if card else ""
+                        constr = f" {{{member['constraints'][0]}}}" if member.get('constraints') else ""
+                        print(f"{sub_prefix}{mem_pref} 🔹 [Atributo] {member['name']} : {member['datatype']}{card_str}{constr}")
+                    
+                    elif member['type'] == 'RelationPole':
+                        # Relações agora usam target/source cardinality
+                        tgt_card = member.get('target_cardinality') or member.get('cardinality') or "1"
+                        src_card = member.get('source_cardinality')
+                        
+                        src_str = f"[{src_card}] " if src_card else ""
+                        arrow = member.get('arrow', '--')
+                        rel_name = member.get('name')
+                        name_str = f" {rel_name} " if rel_name else " "
+                        
+                        target_cls = member.get('target_class') or member.get('target')
 
-                    if member["type"] == "Attribute":
-                        print(
-                            f"{sub_prefix}{mem_pref} 🔹 [Atributo] {member['name']} : {member['datatype']}"
-                        )
-                    elif member["type"] == "RelationPole":
-                        card = member["cardinality"] if member["cardinality"] else "1"
-                        rel_stereo = (
-                            f"<<{member['stereotype']}>> "
-                            if member["stereotype"]
-                            else ""
-                        )
-                        print(
-                            f"{sub_prefix}{mem_pref} 🔗 [Relação] {member['name']} {rel_stereo}[{card}] ➝ {member['target_class']}"
-                        )
+                        print(f"{sub_prefix}{mem_pref} 🔗 [Relação] {src_str}{arrow}{name_str}[{tgt_card}] ➝ {target_cls}")
+
+        # --- VISUALIZAÇÃO DE RELAÇÃO EXTERNA (Relator) ---
+        elif tipo == 'RelationDeclaration':
+            print(f"{prefix} 🔗 RELAÇÃO EXTERNA: {decl['name']}")
+            print(f"{sub_prefix}├── Tipo: <<{decl['relation_type']}>>")
+            
+            body = decl.get('body')
+            members = body['members'] if body and 'members' in body else []
+            
+            if members:
+                 for j, member in enumerate(members):
+                    is_last_mem = (j == len(members) - 1)
+                    mem_pref = "└──" if is_last_mem else "├──"
+                    
+                    if member['type'] == 'RelationPole':
+                         # Lógica adaptada para relator
+                         tgt_card = member.get('target_cardinality') or member.get('cardinality') or "1"
+                         src_card = member.get('source_cardinality')
+                         src_str = f"[{src_card}] " if src_card else ""
+                         arrow = member.get('arrow', '--')
+                         target_cls = member.get('target_class') or member.get('target')
+                         
+                         print(f"{sub_prefix}{mem_pref} Conecta: {src_str}{arrow} [{tgt_card}] ➝ {target_cls}")
+            else:
+                print(f"{sub_prefix}└── (Sem conexões definidas)")
 
         # --- VISUALIZAÇÃO DE ENUM ---
-        elif tipo == "EnumDeclaration":
+        elif tipo == 'EnumDeclaration':
             print(f"{prefix} 🔢 ENUM: {decl['name']}")
-            membros = ", ".join(decl["members"])
+            membros = ", ".join(decl['members'])
             print(f"{sub_prefix}└── Valores: {{{membros}}}")
 
         # --- VISUALIZAÇÃO DE DATATYPE ---
-        elif tipo == "DataTypeDeclaration":
+        elif tipo == 'DataTypeDeclaration':
             print(f"{prefix} 💾 DATATYPE: {decl['name']}")
-            attrs = decl["attributes"]
+            attrs = decl['attributes']
             if not attrs:
-                print(f"{sub_prefix}└── (Vazio)")
+                 print(f"{sub_prefix}└── (Vazio)")
             else:
                 for j, attr in enumerate(attrs):
-                    is_last_mem = j == len(attrs) - 1
+                    is_last_mem = (j == len(attrs) - 1)
                     mem_pref = "└──" if is_last_mem else "├──"
-                    print(
-                        f"{sub_prefix}{mem_pref} • {attr['name']} : {attr['datatype']}"
-                    )
+                    print(f"{sub_prefix}{mem_pref} • {attr['name']} : {attr['datatype']}")
 
         # --- VISUALIZAÇÃO DE GENSET ---
-        elif tipo == "GeneralizationSet":
+        elif tipo == 'GeneralizationSet':
             print(f"{prefix} 🔱 GENSET: {decl['name']}")
-            mods = ", ".join(decl["modifiers"]) if decl["modifiers"] else "Normal"
-            print(f"{sub_prefix}├── Propriedades: {{{mods}}}")
+            mods = ", ".join(decl['modifiers']) if decl['modifiers'] else "Normal"
+            cat = f" (Categorizer: {decl['categorizer']})" if decl.get('categorizer') else ""
+            
+            print(f"{sub_prefix}├── Propriedades: {{{mods}}}{cat}")
             print(f"{sub_prefix}├── Geral: {decl['general']}")
             print(f"{sub_prefix}└── Específicos: {', '.join(decl['specifics'])}")
+            
+        # --- VISUALIZAÇÃO DE TYPE (High Order) ---
+        elif tipo == 'HighOrderType':
+            print(f"{prefix} 🆙 TYPE: {decl['name']}")
 
-        # --- VISUALIZAÇÃO DE RELAÇÃO EXTERNA ---
-        elif tipo == "RelationDeclaration":
-            print(f"{prefix} 🔗 RELAÇÃO EXTERNA: {decl['name']}")
-            print(f"{sub_prefix}├── Tipo: <<{decl['relation_type']}>>")
-
-            body = decl.get("body")
-            members = body["members"] if body and "members" in body else []
-
-            if members:
-                for j, member in enumerate(members):
-                    is_last_mem = j == len(members) - 1
-                    mem_pref = "└──" if is_last_mem else "├──"
-                    # Relações externas geralmente contêm polos/atributos
-                    if member["type"] == "RelationPole":
-                        card = member["cardinality"] if member["cardinality"] else "1"
-                        print(
-                            f"{sub_prefix}{mem_pref} Conecta: -- {member['name']} [{card}] ➝ {member['target_class']}"
-                        )
-            else:
-                print(f"{sub_prefix}└── (Sem definições de polos)")
-
-    print("\n" + "=" * 60 + "\n")
+    print("\n" + "="*60 + "\n")
 
 
 # =============================================================================

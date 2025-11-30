@@ -18,7 +18,7 @@ subkind Suco specializes Bebida
 //=============================================
 // DISJUNCAO DAS OPCOES DE BEBIDAS
 disjoint complete genset Opcao_De_Bebida {
-    general Bebida,
+    general Bebida
     specifics Agua, Refrigerante, Suco
 }
 
