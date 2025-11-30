@@ -37,6 +37,7 @@ t_ASTERISK = r"\*"
 t_AT = r"@"
 t_COLON = r":"
 t_COMMA = r","
+t_DOT  = r"\."
 
 # -----------------------------------------------------------------------------
 # IGNORAR ESPAÇOS E COMENTÁRIOS

@@ -60,7 +60,7 @@ def p_nome_identificador(p):
     p[0] = p[1]
 
 
-# (NOVO) Regra flexível para nomes de Classes
+# Regra flexível para nomes de Classes
 # Aceita 'Person' (CLASS_NAME) e 'Criterion_A1' (INSTANCE_NAME)
 def p_class_identifier(p):
     """class_identifier : CLASS_NAME
@@ -91,9 +91,13 @@ def p_declaracao(p):
     | declaracao_genset
     | declaracao_relacao_externa
     | declaracao_relacao_inline
-    | declaracao_association"""
+    | declaracao_association
+    | declaracao_high_order_type"""
     p[0] = p[1]
 
+def p_declaracao_high_order_type(p):
+    """declaracao_high_order_type : TYPE class_identifier"""
+    p[0] = {"type": "HighOrderType", "name": p[2]}
 
 # ----------------------------------
 # E. DECLARAÇÃO DE CLASSE (CONSTRUTO 2)
@@ -109,7 +113,6 @@ def p_declaracao_classe(p):
         "specializes": p[4],
         "body": p[5],
     }
-
 
 def p_classe_natureza_opcional(p):
     """classe_natureza_opcional : OF natureza_classe
@@ -326,21 +329,37 @@ def p_lista_atributos_datatype(p):
 
 
 def p_atributo_datatype(p):
-    """atributo_datatype : RELATION_NAME COLON tipo_atributo cardinalidade_opcional"""
+    # CORREÇÃO: Adicionei 'restricoes_atributo_opcional' ao final da linha abaixo
+    """atributo_datatype : RELATION_NAME COLON tipo_atributo cardinalidade_opcional restricoes_atributo_opcional"""
 
     p[0] = {
         "type": "Attribute",
-        "name": p[1],
-        "datatype": p[3],
+        "name": p[1],       
+        "datatype": p[3],   
         "cardinality": p[4],
+        "constraints": p[5] 
     }
 
 
 # (MODIFICADO) Usa class_identifier como tipo possível
 def p_tipo_atributo(p):
     """tipo_atributo : tipo_primitivo
-    | class_identifier"""
-    p[0] = p[1]
+                     | class_identifier
+                     | class_identifier DOT class_identifier"""
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        # Reconstrói a string do tipo composto (ex: "CoreDatatypes.PhoneNumber")
+        p[0] = f"{p[1]}.{p[3]}"
+
+# Regra para restrições como { const }
+def p_restricoes_atributo_opcional(p):
+    """restricoes_atributo_opcional : LBRACE CONST RBRACE
+                                    | empty"""
+    if len(p) == 4:
+        p[0] = ["const"]
+    else:
+        p[0] = []
 
 
 # --- TIPOS PRIMITIVOS ---
@@ -730,15 +749,11 @@ parser = yacc.yacc(
     tabmodule="parsetab",  # nome do arquivo de tabelas
 )
 
-
+parser = yacc.yacc(write_tables=False, debug=False)
 def parse_tonto_code(code_string):
-    """
-    Função principal para analisar o código TONTO.
-    """
     global has_error
     has_error = False
     lexer.lineno = 1
     ast_result = parser.parse(code_string, lexer=lexer)
-    if has_error:
-        return None
+    if has_error: return None
     return ast_result
